@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 10
 
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     steps:
@@ -42,19 +42,18 @@ jobs:
 
           echo "Latest VS Code version is: $LATEST_VERSION"
 
-          echo "Fetching currently published npm version..."
-          CURRENT_VERSION=$(npm view $PACKAGE_NAME version || echo "0.0.0")
-          echo "Currently published version is: $CURRENT_VERSION"
+          TRACKED_VSCODE_VERSION=$(jq -r .vscodeVersion package.json)
+          echo "Currently tracked VS Code version is: $TRACKED_VSCODE_VERSION"
 
-          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest_vscode_version=$LATEST_VSCODE_VERSION" >> $GITHUB_OUTPUT
+          echo "tracked_vscode_version=$TRACKED_VSCODE_VERSION" >> $GITHUB_OUTPUT
 
       - name: Announce no update needed
-        if: steps.version_check.outputs.latest_version == steps.version_check.outputs.current_version
+        if: steps.version_check.outputs.latest_version == steps.version_check.outputs.tracked_vscode_version
         run: echo "Package is already up to date with version ${{ steps.version_check.outputs.latest_version }}. No action needed."
 
       - name: Extract and Publish new version
-        if: steps.version_check.outputs.latest_version != steps.version_check.outputs.current_version
+        if: steps.version_check.outputs.latest_version != steps.version_check.outputs.tracked_vscode_version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
