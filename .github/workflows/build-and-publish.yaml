@@ -25,10 +25,24 @@ jobs:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Build VSCode
+      - name: Install dependencies
         run: |
           cd vscode
           npm ci
+
+      - name: Build css language server
+        run: |
+          cd vscode/extensions/css-language-features/server
+          npm run compile
+
+      - name: Build html language server
+        run: |
+          cd vscode/extensions/html-language-features/server
+          npm run compile
+
+      - name: Build json language server
+        run: |
+          cd vscode/extensions/json-language-features/server
           npm run compile
 
       - name: Copy files
