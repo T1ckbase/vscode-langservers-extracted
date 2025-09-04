@@ -18,7 +18,7 @@ jobs:
         run: |
           latest_release=$(curl -s https://api.github.com/repos/microsoft/vscode/releases/latest | jq -r .tag_name)
           echo "Latest release tag is $latest_release"
-          echo "LATEST_RELEASE=v$latest_release" >> $GITHUB_ENV
+          echo "LATEST_RELEASE=$latest_release" >> $GITHUB_ENV
 
       - name: Checkout Visual Studio Code
         uses: actions/checkout@v4
