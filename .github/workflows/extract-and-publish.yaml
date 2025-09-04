@@ -40,11 +40,6 @@ jobs:
             exit 1
           fi
 
-          if [ -z "$LATEST_VERSION" ]; then
-            echo "::error::Could not determine latest VS Code version."
-            exit 1
-          fi
-
           echo "Latest VS Code version is: $LATEST_VERSION"
 
           echo "Fetching currently published npm version..."
@@ -63,8 +58,14 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           LATEST_VERSION=${{ steps.version_check.outputs.latest_version }}
           echo "New version $LATEST_VERSION found. Starting extract and publish process..."
+
+          npm version patch -m "chore: update vscode language servers to v${LATEST_VSCODE_VERSION}"
+
+          jq --arg ver "$LATEST_VSCODE_VERSION" '.vscodeVersion = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
 
           echo "Fetching dependencies from the 'extensions' root package.json..."
           curl -sSL "https://raw.githubusercontent.com/microsoft/vscode/refs/tags/$LATEST_VERSION/extensions/package.json" -o vscode-extensions-pkg.json
@@ -72,9 +73,6 @@ jobs:
           jq -s '.[0] * {dependencies: .[1].dependencies}' package.json vscode-extensions-pkg.json > package.json.tmp && mv package.json.tmp package.json
           rm vscode-extensions-pkg.json
           echo "Dependencies updated in local package.json."
-
-          # npm version --no-git-tag-version --allow-same-version $LATEST_VERSION
-          npm version 0.0.0 --no-git-tag-version --allow-same-version
 
           mkdir vscode
           unzip -q vscode.zip -d vscode
@@ -104,3 +102,7 @@ jobs:
 
           echo "Publishing to npm..."
           npm publish --provenance --access public
+
+          git add package.json
+          git commit --amend --no-edit
+          git push && git push --tags
