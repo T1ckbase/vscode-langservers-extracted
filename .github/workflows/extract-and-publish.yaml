@@ -1,4 +1,4 @@
-name: Build and publish to npm
+name: Extract and Publish to npm
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
   #     - "v*"
 
 jobs:
-  build-and-publish:
+  extract-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
