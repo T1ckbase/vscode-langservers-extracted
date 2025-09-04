@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd vscode
-          npm ci
+          npm install
 
       - name: Build css language server
         run: |
