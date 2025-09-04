@@ -13,10 +13,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Get latest release tag
+        id: latest-release
+        run: |
+          latest_release=$(curl -s https://api.github.com/repos/microsoft/vscode/releases/latest | jq -r .tag_name)
+          echo "Latest release tag is $latest_release"
+          echo "LATEST_RELEASE=v$latest_release" >> $GITHUB_ENV
+
       - name: Checkout Visual Studio Code
         uses: actions/checkout@v4
         with:
           repository: microsoft/vscode
+          ref: 'refs/tags/v1.103.2'
           path: vscode
 
       - name: Set up Node
