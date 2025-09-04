@@ -1,6 +1,6 @@
 {
   "name": "@t1ckbase/vscode-langservers-extracted",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Extracted language servers from Visual Studio Code for various languages (CSS, HTML, JSON)",
   "author": "t1ckbase",
   "license": "MIT",
