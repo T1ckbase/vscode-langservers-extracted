@@ -1,0 +1,28 @@
+{
+  "name": "@t1ckbase/vscode-langservers-extracted",
+  "version": "0.0.0",
+  "description": "Extracted language servers from Visual Studio Code for various languages (CSS, HTML, JSON)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/T1ckbase/vscode-langservers-extracted"
+  },
+  "bugs": {
+    "url": "https://github.com/T1ckbase/vscode-langservers-extracted/issues"
+  },
+  "bin": {
+    "vscode-css-language-server": "bin/cssServerMain.js",
+    "vscode-html-language-server": "bin/htmlServerMain.js",
+    "vscode-json-language-server": "bin/jsonServerMain.js"
+  },
+  "keywords": [
+    "vscode",
+    "language-server",
+    "language-server-protocol",
+    "lsp",
+    "css",
+    "html",
+    "json"
+  ],
+  "author": "t1ckbase",
+  "license": "MIT"
+}

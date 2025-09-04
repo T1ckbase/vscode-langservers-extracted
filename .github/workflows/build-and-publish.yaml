@@ -1,0 +1,58 @@
+name: Build and publish to npm
+
+on:
+  workflow_dispatch:
+  # push:
+  #   tags:
+  #     - "v*"
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout Visual Studio Code
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/vscode
+          path: vscode
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build css language server
+        run: |
+          cd vscode/extensions/css-language-features/server
+          npm ci
+          npm run compile
+
+      - name: Build html language server
+        run: |
+          cd vscode/extensions/html-language-features/server
+          npm ci
+          npm run compile
+
+      - name: Build json language server
+        run: |
+          cd vscode/extensions/json-language-features/server
+          npm ci
+          npm run compile
+
+      - name: Copy files
+        run: |
+          mkdir bin
+          cp vscode/extensions/css-language-features/server/dist/node/* bin/
+          cp vscode/extensions/html-language-features/server/dist/node/* bin/
+          cp vscode/extensions/json-language-features/server/dist/node/* bin/
+          rm -rf vscode
+
+      - name: Publish Package to npmjs
+        run: |
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
