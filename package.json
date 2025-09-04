@@ -9,6 +9,9 @@
   "bugs": {
     "url": "https://github.com/T1ckbase/vscode-langservers-extracted/issues"
   },
+  "files": [
+    "bin"
+  ],
   "bin": {
     "vscode-css-language-server": "bin/cssServerMain.js",
     "vscode-html-language-server": "bin/htmlServerMain.js",
