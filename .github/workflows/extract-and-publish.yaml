@@ -73,8 +73,8 @@ jobs:
           rm vscode-extensions-pkg.json
           echo "Dependencies updated in local package.json."
 
-          # npm --no-git-tag-version version $LATEST_VERSION
-          npm --no-git-tag-version version 0.0.0
+          # npm version --no-git-tag-version --allow-same-version $LATEST_VERSION
+          npm version 0.0.0 --no-git-tag-version --allow-same-version
 
           mkdir vscode
           unzip -q vscode.zip -d vscode
