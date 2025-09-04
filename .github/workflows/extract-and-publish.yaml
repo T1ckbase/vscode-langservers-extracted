@@ -66,7 +66,15 @@ jobs:
           LATEST_VERSION=${{ steps.version_check.outputs.latest_version }}
           echo "New version $LATEST_VERSION found. Starting extract and publish process..."
 
-          npm --no-git-tag-version version $LATEST_VERSION
+          echo "Fetching dependencies from the 'extensions' root package.json..."
+          curl -sSL "https://raw.githubusercontent.com/microsoft/vscode/refs/tags/$LATEST_VERSION/extensions/package.json" -o vscode-extensions-pkg.json
+
+          jq -s '.[0] * {dependencies: .[1].dependencies}' package.json vscode-extensions-pkg.json > package.json.tmp && mv package.json.tmp package.json
+          rm vscode-extensions-pkg.json
+          echo "Dependencies updated in local package.json."
+
+          # npm --no-git-tag-version version $LATEST_VERSION
+          npm --no-git-tag-version version 0.0.0
 
           mkdir vscode
           unzip -q vscode.zip -d vscode
@@ -91,6 +99,7 @@ jobs:
               echo "::error::Verification failed! Required file not found: $file"
               exit 1
             fi
+            sed -i '1i #!/usr/bin/env node' $file
           done
 
           echo "Publishing to npm..."

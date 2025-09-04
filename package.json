@@ -2,6 +2,8 @@
   "name": "@t1ckbase/vscode-langservers-extracted",
   "version": "0.0.0",
   "description": "Extracted language servers from Visual Studio Code for various languages (CSS, HTML, JSON)",
+  "author": "t1ckbase",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/T1ckbase/vscode-langservers-extracted"
@@ -26,6 +28,5 @@
     "html",
     "json"
   ],
-  "author": "t1ckbase",
-  "license": "MIT"
+  "dependencies": {}
 }
