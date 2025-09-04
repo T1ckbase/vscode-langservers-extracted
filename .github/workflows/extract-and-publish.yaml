@@ -42,32 +42,33 @@ jobs:
 
           echo "Latest VS Code version is: $LATEST_VERSION"
 
-          TRACKED_VSCODE_VERSION=$(jq -r .vscodeVersion package.json)
-          echo "Currently tracked VS Code version is: $TRACKED_VSCODE_VERSION"
+          TRACKED_VERSION=$(jq -r .vscodeVersion package.json)
+          echo "Currently tracked VS Code version is: $TRACKED_VERSION"
 
-          echo "latest_vscode_version=$LATEST_VSCODE_VERSION" >> $GITHUB_OUTPUT
-          echo "tracked_vscode_version=$TRACKED_VSCODE_VERSION" >> $GITHUB_OUTPUT
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "tracked_version=$TRACKED_VERSION" >> $GITHUB_OUTPUT
 
       - name: Announce no update needed
-        if: steps.version_check.outputs.latest_version == steps.version_check.outputs.tracked_vscode_version
+        if: steps.version_check.outputs.latest_version == steps.version_check.outputs.tracked_version
         run: echo "Package is already up to date with version ${{ steps.version_check.outputs.latest_version }}. No action needed."
 
       - name: Extract and Publish new version
-        if: steps.version_check.outputs.latest_version != steps.version_check.outputs.tracked_vscode_version
+        if: steps.version_check.outputs.latest_version != steps.version_check.outputs.tracked_version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          set -euo pipefail
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           LATEST_VERSION=${{ steps.version_check.outputs.latest_version }}
           echo "New version $LATEST_VERSION found. Starting extract and publish process..."
 
-          npm version patch -m "chore: update vscode language servers to v${LATEST_VSCODE_VERSION}"
+          npm version patch -m "chore: update vscode language servers to v${LATEST_VERSION}"
 
-          jq --arg ver "$LATEST_VSCODE_VERSION" '.vscodeVersion = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
+          jq --arg ver "$LATEST_VERSION" '.vscodeVersion = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
 
           echo "Fetching dependencies from the 'extensions' root package.json..."
-          curl -sSL "https://raw.githubusercontent.com/microsoft/vscode/refs/tags/$LATEST_VERSION/extensions/package.json" -o vscode-extensions-pkg.json
+          curl -fsSL "https://raw.githubusercontent.com/microsoft/vscode/refs/tags/$LATEST_VERSION/extensions/package.json" -o vscode-extensions-pkg.json
 
           jq -s '.[0] * {dependencies: .[1].dependencies}' package.json vscode-extensions-pkg.json > package.json.tmp && mv package.json.tmp package.json
           rm vscode-extensions-pkg.json
