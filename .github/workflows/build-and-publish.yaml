@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: microsoft/vscode
-          ref: 'refs/tags/v1.103.2'
+          ref: ${{ env.LATEST_RELEASE }}
           path: vscode
 
       - name: Set up Node
