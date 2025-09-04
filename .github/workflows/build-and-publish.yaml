@@ -2,6 +2,8 @@ name: Build and publish to npm
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 2' 
   # push:
   #   tags:
   #     - "v*"
@@ -13,56 +15,77 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get latest release tag
-        id: latest-release
-        run: |
-          latest_release=$(curl -s https://api.github.com/repos/microsoft/vscode/releases/latest | jq -r .tag_name)
-          echo "Latest release tag is $latest_release"
-          echo "LATEST_RELEASE=$latest_release" >> $GITHUB_ENV
-
-      - name: Checkout Visual Studio Code
-        uses: actions/checkout@v4
-        with:
-          repository: microsoft/vscode
-          ref: ${{ env.LATEST_RELEASE }}
-          path: vscode
-
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
+      - name: Check for new version
+        id: version_check
         run: |
-          cd vscode
-          npm install
+          PACKAGE_NAME="@t1ckbase/vscode-langservers-extracted"
 
-      - name: Build css language server
-        run: |
-          cd vscode/extensions/css-language-features/server
-          npm run compile
+          echo "Fetching latest VS Code stable version..."
+          LATEST_VERSION=$(curl -fsSL -o vscode.zip -w '%{url_effective}' "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive" | grep -oP '(\d+\.\d+\.\d+)(?=\.zip)')
 
-      - name: Build html language server
-        run: |
-          cd vscode/extensions/html-language-features/server
-          npm run compile
+          if [ -z "$LATEST_VERSION" ]; then
+            echo "::error::Could not determine latest VS Code version."
+            exit 1
+          fi
 
-      - name: Build json language server
-        run: |
-          cd vscode/extensions/json-language-features/server
-          npm run compile
+          if [ -z "$LATEST_VERSION" ]; then
+            echo "::error::Could not determine latest VS Code version."
+            exit 1
+          fi
 
-      - name: Copy files
-        run: |
-          mkdir bin
-          cp vscode/extensions/css-language-features/server/dist/node/* bin/
-          cp vscode/extensions/html-language-features/server/dist/node/* bin/
-          cp vscode/extensions/json-language-features/server/dist/node/* bin/
-          rm -rf vscode
+          echo "Latest VS Code version is: $LATEST_VERSION"
 
-      - name: Publish Package to npmjs
-        run: |
-          npm publish --provenance --access public
+          echo "Fetching currently published npm version..."
+          CURRENT_VERSION=$(npm view $PACKAGE_NAME version || echo "0.0.0")
+          echo "Currently published version is: $CURRENT_VERSION"
+
+          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Announce no update needed
+        if: steps.version_check.outputs.latest_version == steps.version_check.outputs.current_version
+        run: echo "Package is already up to date with version ${{ steps.version_check.outputs.latest_version }}. No action needed."
+
+      - name: Extract and Publish new version
+        if: steps.version_check.outputs.latest_version != steps.version_check.outputs.current_version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          LATEST_VERSION=${{ steps.version_check.outputs.latest_version }}
+          echo "New version $LATEST_VERSION found. Starting extract and publish process..."
+
+          npm --no-git-tag-version version $LATEST_VERSION
+
+          mkdir vscode
+          unzip vscode.zip -d vscode
+          rm vscode.zip
+
+          echo "Copying language server files..."
+          mkdir bin
+          cp vscode/resources/app/extensions/css-language-features/server/dist/node/* bin/
+          cp vscode/resources/app/extensions/html-language-features/server/dist/node/* bin/
+          cp vscode/resources/app/extensions/json-language-features/server/dist/node/* bin/
+          rm -rf vscode
+
+          echo "Verifying that all server files were copied correctly..."
+          FILES_TO_CHECK=(
+            "bin/cssServerMain.js"
+            "bin/htmlServerMain.js"
+            "bin/jsonServerMain.js"
+          )
+
+          for file in "${FILES_TO_CHECK[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Verification failed! Required file not found: $file"
+              exit 1
+            fi
+          done
+
+          echo "Publishing to npm..."
+          npm publish --provenance --access public
