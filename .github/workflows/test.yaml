@@ -1,0 +1,82 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Run script
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          LATEST_VERSION=${{ steps.version_check.outputs.latest_version }}
+          echo "New version $LATEST_VERSION found. Starting extract and publish process..."
+
+          npm version patch -m "chore: update vscode language servers to v${LATEST_VERSION}"
+
+          jq --arg ver "$LATEST_VERSION" '.vscodeVersion = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
+
+          echo "Fetching dependencies from the 'extensions' root package.json..."
+          curl -fsSL "https://raw.githubusercontent.com/microsoft/vscode/refs/tags/$LATEST_VERSION/extensions/package.json" -o vscode-extensions-pkg.json
+
+          jq -s '.[0] * {dependencies: .[1].dependencies}' package.json vscode-extensions-pkg.json > package.json.tmp && mv package.json.tmp package.json
+          rm vscode-extensions-pkg.json
+          echo "Dependencies updated in local package.json."
+
+          mkdir vscode
+          unzip -q vscode.zip -d vscode
+          rm vscode.zip
+
+          echo "Copying language server files..."
+          mkdir bin
+          cp vscode/resources/app/extensions/css-language-features/server/dist/node/* bin/
+          cp vscode/resources/app/extensions/html-language-features/server/dist/node/* bin/
+          cp vscode/resources/app/extensions/json-language-features/server/dist/node/* bin/
+          rm -rf vscode
+
+          echo "Verifying that all server files were copied correctly..."
+          FILES_TO_CHECK=(
+            "bin/cssServerMain.js"
+            "bin/htmlServerMain.js"
+            "bin/jsonServerMain.js"
+          )
+
+          for file in "${FILES_TO_CHECK[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Verification failed! Required file not found: $file"
+              exit 1
+            fi
+            sed -i '1i #!/usr/bin/env node' $file
+          done
+
+          echo "Publishing to npm..."
+          npm publish --provenance --access public
+
+          git add package.json
+          git commit --amend --no-edit
+          git push && git push --tags
