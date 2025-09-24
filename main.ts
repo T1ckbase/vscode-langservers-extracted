@@ -1,5 +1,3 @@
-// #!/usr/bin/env node
-
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -76,7 +74,7 @@ async function downloadVsix(extensionName: string) {
 async function getVscodeExtensionsPackageJson(version: string) {
   const res = await fetch(`https://raw.githubusercontent.com/microsoft/vscode/refs/tags/${version}/extensions/package.json`);
   if (!res.ok) throw Error(`Failed to fetch vscode extensions package.json: ${res.status} ${res.statusText}`);
-  return await res.json() as any;
+  return (await res.json()) as any;
 }
 
 interface Package {
@@ -93,9 +91,9 @@ const packages: Package[] = [
     checkver: /\d+\.\d+\.\d+$/,
     downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive',
     copy: {
-      'resources/app/extensions/css-language-features/server/dist/node/*': 'dist/css',
-      'resources/app/extensions/html-language-features/server/dist/node/*': 'dist/html',
-      'resources/app/extensions/json-language-features/server/dist/node/*': 'dist/json',
+      'resources/app/extensions/css-language-features/server/dist/node/*': 'dist/css/',
+      'resources/app/extensions/html-language-features/server/dist/node/*': 'dist/html/',
+      'resources/app/extensions/json-language-features/server/dist/node/*': 'dist/json/',
     },
     entries: ['dist/css/cssServerMain.js', 'dist/html/htmlServerMain.js', 'dist/json/jsonServerMain.js'],
   },
@@ -105,7 +103,7 @@ const packages: Package[] = [
     downloadUrl: (version) =>
       `https://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/anycode/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`,
     copy: {
-      'extension/dist/anycode.server.node.js': 'dist/anycode',
+      'extension/dist/anycode.server.node.js': 'dist/anycode/',
     },
     entries: ['dist/anycode/anycode.server.node.js'],
   },
@@ -115,7 +113,7 @@ const packages: Package[] = [
     downloadUrl: (version) =>
       `https://dbaeumer.gallery.vsassets.io/_apis/public/gallery/publisher/dbaeumer/extension/vscode-eslint/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`,
     copy: {
-      'extension/server/out/*': 'dist/eslint',
+      'extension/server/out/*': 'dist/eslint/',
     },
     entries: ['dist/eslint/eslintServer.js'],
   },
@@ -131,15 +129,16 @@ for (const pkg of packages) {
   if (currentVersion === latestVersion) continue;
 
   if (pkg.repo === 'microsoft/vscode') {
-    const vscodeExtensionsPackageJson = await getVscodeExtensionsPackageJson(latestVersion)
+    const vscodeExtensionsPackageJson = await getVscodeExtensionsPackageJson(latestVersion);
     packageJson.dependencies = vscodeExtensionsPackageJson.dependencies;
   }
 
+  console.log(`Downloading ${pkg.repo}...`);
   await $`curl -fsSL ${typeof pkg.downloadUrl === 'string' ? pkg.downloadUrl : pkg.downloadUrl(latestVersion)} -o tmp.zip`;
   await $`unzip -q tmp.zip -d tmp`;
   for (const [k, v] of Object.entries(pkg.copy)) {
     await $`mkdir -p ${v}`;
-    await $`mv ${path.join('tmp', k)} ${v}`;
+    await $`cp ${path.join('tmp', k)} ${v}`;
   }
   for (const entry of pkg.entries) {
     const file = Bun.file(path.join(os.tmpdir(), entry));
