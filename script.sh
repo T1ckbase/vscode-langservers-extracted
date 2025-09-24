@@ -39,6 +39,10 @@ main() {
   local packages=("microsoft/vscode" "microsoft/vscode-anycode" "microsoft/vscode-eslint")
   local updates=()
 
+  # Bump version, commit, and publish
+  echo "[INFO] Preparing new release..."
+  npm version patch -m "foo"
+
   for repo in "${packages[@]}"; do
     echo "---"
     echo "[INFO] Checking package: ${repo}"
@@ -50,7 +54,7 @@ main() {
     # Get the latest version tag from the GitHub API.
     local tag_name
     tag_name=$(github_api_get_latest_release_tag "$repo") || die "Failed to fetch latest tag for ${repo}."
-    
+
     # Extract semantic version (e.g., 1.2.3) from the tag name (e.g., v1.2.3 or release-1.2.3)
     local latest_version
     latest_version=$(echo "$tag_name" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
@@ -150,17 +154,12 @@ main() {
   commit_message="chore: update vscode language servers: "
   commit_message+=$(IFS=', ' ; echo "${updates[*]}")
 
-  echo "[INFO] Commit message: ${commit_message}"
-
-  # Bump version, commit, and publish
-  echo "[INFO] Preparing new release..."
-  npm version patch -m "$commit_message"
-  
+ 
   echo "[INFO] Publishing to npm..."
   npm publish --provenance --access public
 
   git add package.json
-  git commit --amend --no-edit
+  git commit --amend -m "$commit_message"
   git push && git push --tags
 
   echo "---"
