@@ -27,82 +27,12 @@ jobs:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Check for new version
-        id: version_check
-        run: |
-          PACKAGE_NAME="@t1ckbase/vscode-langservers-extracted"
-
-          echo "Fetching latest VS Code stable version..."
-          LATEST_VERSION=$(curl -fsSL -o vscode.zip -w '%{url_effective}' "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive" | grep -oP '(\d+\.\d+\.\d+)(?=\.zip)')
-
-          if [ -z "$LATEST_VERSION" ]; then
-            echo "::error::Could not determine latest VS Code version."
-            exit 1
-          fi
-
-          echo "Latest VS Code version is: $LATEST_VERSION"
-
-          TRACKED_VERSION=$(jq -r .vscodeVersion package.json)
-          echo "Currently tracked VS Code version is: $TRACKED_VERSION"
-
-          echo "latest_version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-          echo "tracked_version=$TRACKED_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Announce no update needed
-        if: steps.version_check.outputs.latest_version == steps.version_check.outputs.tracked_version
-        run: echo "Package is already up to date with version ${{ steps.version_check.outputs.latest_version }}. No action needed."
-
       - name: Extract and Publish new version
-        if: steps.version_check.outputs.latest_version != steps.version_check.outputs.tracked_version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          set -euo pipefail
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          LATEST_VERSION=${{ steps.version_check.outputs.latest_version }}
-          echo "New version $LATEST_VERSION found. Starting extract and publish process..."
 
-          npm version patch -m "chore: update vscode language servers to v${LATEST_VERSION}"
-
-          jq --arg ver "$LATEST_VERSION" '.vscodeVersion = $ver' package.json > package.json.tmp && mv package.json.tmp package.json
-
-          echo "Fetching dependencies from the 'extensions' root package.json..."
-          curl -fsSL "https://raw.githubusercontent.com/microsoft/vscode/refs/tags/$LATEST_VERSION/extensions/package.json" -o vscode-extensions-pkg.json
-
-          jq -s '.[0] * {dependencies: .[1].dependencies}' package.json vscode-extensions-pkg.json > package.json.tmp && mv package.json.tmp package.json
-          rm vscode-extensions-pkg.json
-          echo "Dependencies updated in local package.json."
-
-          mkdir vscode
-          unzip -q vscode.zip -d vscode
-          rm vscode.zip
-
-          echo "Copying language server files..."
-          mkdir bin
-          cp vscode/resources/app/extensions/css-language-features/server/dist/node/* bin/
-          cp vscode/resources/app/extensions/html-language-features/server/dist/node/* bin/
-          cp vscode/resources/app/extensions/json-language-features/server/dist/node/* bin/
-          rm -rf vscode
-
-          echo "Verifying that all server files were copied correctly..."
-          FILES_TO_CHECK=(
-            "bin/cssServerMain.js"
-            "bin/htmlServerMain.js"
-            "bin/jsonServerMain.js"
-          )
-
-          for file in "${FILES_TO_CHECK[@]}"; do
-            if [ ! -f "$file" ]; then
-              echo "::error::Verification failed! Required file not found: $file"
-              exit 1
-            fi
-            sed -i '1i #!/usr/bin/env node' $file
-          done
-
-          echo "Publishing to npm..."
-          npm publish --provenance --access public
-
-          git add package.json
-          git commit --amend --no-edit
-          git push && git push --tags
+          chmod +x ./script.sh
+          ./script.sh
