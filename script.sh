@@ -151,16 +151,12 @@ main() {
   mv "${TMP_DIR}/dist" .
 
   # Create the commit message by joining the updates array
-  commit_message="chore: update vscode language servers: "
-  commit_message+=$(IFS=', ' ; echo "${updates[*]}")
+  commit_message="chore: update vscode language servers:"
+  commit_message+=$(IFS=,; echo " ${updates[*]}")
 
  
   echo "[INFO] Publishing to npm..."
   npm publish --provenance --access public
-
-  git add package.json
-  git commit --amend -m "$commit_message"
-  git push && git push --tags
 
   echo "---"
   echo "[SUCCESS] Done!"
