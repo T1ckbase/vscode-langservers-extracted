@@ -3,7 +3,6 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import AdmZip from 'adm-zip';
 import { $ } from 'bun';
 import packageJson from './package.json' with { type: 'json' };
 
@@ -74,6 +73,12 @@ async function downloadVsix(extensionName: string) {
   return await res.arrayBuffer();
 }
 
+async function getVscodeExtensionsPackageJson(version: string) {
+  const res = await fetch(`https://raw.githubusercontent.com/microsoft/vscode/refs/tags/${version}/extensions/package.json`);
+  if (!res.ok) throw Error(`Failed to fetch vscode extensions package.json: ${res.status} ${res.statusText}`);
+  return await res.json() as any;
+}
+
 interface Package {
   repo: string;
   checkver: RegExp;
@@ -125,7 +130,12 @@ for (const pkg of packages) {
   if (typeof currentVersion !== 'string') throw Error('?');
   if (currentVersion === latestVersion) continue;
 
-  await $`curl -fsSL ${pkg.downloadUrl} -o tmp.zip`;
+  if (pkg.repo === 'microsoft/vscode') {
+    const vscodeExtensionsPackageJson = await getVscodeExtensionsPackageJson(latestVersion)
+    packageJson.dependencies = vscodeExtensionsPackageJson.dependencies;
+  }
+
+  await $`curl -fsSL ${typeof pkg.downloadUrl === 'string' ? pkg.downloadUrl : pkg.downloadUrl(latestVersion)} -o tmp.zip`;
   await $`unzip -q tmp.zip -d tmp`;
   for (const [k, v] of Object.entries(pkg.copy)) {
     await $`mkdir -p ${v}`;
@@ -141,6 +151,8 @@ for (const pkg of packages) {
   updates.push(`${pkg.repo} ${currentVersion} → ${latestVersion}`);
   packageJson.metadata.versions[pkg.repo as keyof typeof packageJson.metadata.versions] = latestVersion;
 }
+
+await Bun.write('package.json', JSON.stringify(packageJson, null, 2));
 
 $.cwd(process.cwd());
 $`mkdir dist`;

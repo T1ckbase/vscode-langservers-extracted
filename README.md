@@ -10,7 +10,7 @@ Anycode language server extracted from [vscode-anycode](https://github.com/micro
 ESLint language server extracted from [vscode-eslint](https://github.com/microsoft/vscode-eslint).
 
 > [!NOTE]
-> The official Markdown language server is already available on npm and is not included in this package:
+> The official Markdown language server is already available on npm and is not included in this package:<br>
 > [vscode-markdown-languageserver](https://www.npmjs.com/package/vscode-markdown-languageserver)
 
 # Why?
