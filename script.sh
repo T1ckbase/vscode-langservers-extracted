@@ -1,8 +1,173 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 set -euo pipefail
 
-cd /tmp
+# Vibe coded
 
-vscode_version=$(curl -fsSL -o vscode.zip -w '%{url_effective}' "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive" | grep -oP '(\d+\.\d+\.\d+)(?=\.zip)')
-echo $vscode_version
+# --- Helper Functions ---
+
+# Print an error message and exit.
+# Usage: die "Something went wrong"
+die() {
+  echo "[ERROR] $*" >&2
+  exit 1
+}
+
+# Fetch the latest release tag from a GitHub repository.
+# Usage: github_api_get_latest_release_tag "owner/repo"
+github_api_get_latest_release_tag() {
+  local repo="$1"
+  # Fetches the latest release and extracts the tag name.
+  # Handles potential API rate limits gracefully by exiting if curl fails.
+  curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name'
+}
+
+# --- Main Logic ---
+
+main() {
+
+  # Work in a temporary directory and ensure it's cleaned up on exit.
+  ORIG_DIR=$(pwd)
+  TMP_DIR=$(mktemp -d)
+  trap 'rm -rf "$TMP_DIR"' EXIT
+  cd "$TMP_DIR"
+  echo "[INFO] Working in temporary directory: $TMP_DIR"
+
+  # Create a local copy of package.json to modify.
+  cp "${ORIG_DIR}/package.json" .
+
+  # Define packages to update.
+  local packages=("microsoft/vscode" "microsoft/vscode-anycode" "microsoft/vscode-eslint")
+  local updates=()
+
+  for repo in "${packages[@]}"; do
+    echo "---"
+    echo "[INFO] Checking package: ${repo}"
+
+    # --- 1. Get Latest and Current Versions ---
+    local current_version
+    current_version=$(jq -r ".metadata.versions[\"${repo}\"]" package.json)
+
+    # Get the latest version tag from the GitHub API.
+    local tag_name
+    tag_name=$(github_api_get_latest_release_tag "$repo") || die "Failed to fetch latest tag for ${repo}."
+    
+    # Extract semantic version (e.g., 1.2.3) from the tag name (e.g., v1.2.3 or release-1.2.3)
+    local latest_version
+    latest_version=$(echo "$tag_name" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+
+    if [[ -z "$latest_version" ]]; then
+      die "Could not parse a valid version number from tag '${tag_name}' for ${repo}"
+    fi
+
+    if [[ "$current_version" == "$latest_version" ]]; then
+      echo "[SUCCESS] ${repo} is up to date (version ${current_version})."
+      continue
+    fi
+
+    echo "[UPDATE] Update available for ${repo}: ${current_version} -> ${latest_version}"
+
+    # --- 2. Download and Extract ---
+    local download_url
+    echo "[INFO] Downloading ${repo} v${latest_version}..."
+
+    # The download URL logic is specific to each package.
+    case "$repo" in
+    "microsoft/vscode")
+      download_url="https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive"
+      ;;
+    "microsoft/vscode-anycode")
+      download_url="https://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/anycode/${latest_version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage"
+      ;;
+    "microsoft/vscode-eslint")
+      download_url="https://dbaeumer.gallery.vsassets.io/_apis/public/gallery/publisher/dbaeumer/extension/vscode-eslint/${latest_version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage"
+      ;;
+    *)
+      die "Unknown package repository: $repo"
+      ;;
+    esac
+
+    curl -fsSL "$download_url" -o "tmp.zip"
+    unzip -q "tmp.zip" -d "tmp"
+    rm "tmp.zip"
+
+    # --- 3. Copy Required Files ---
+    echo "[INFO] Extracting server files..."
+    case "$repo" in
+    "microsoft/vscode")
+      # Special case: update dependencies from VS Code's extension package.json
+      echo "[INFO] Updating dependencies from VS Code source..."
+      vscode_deps=$(curl -fsSL "https://raw.githubusercontent.com/microsoft/vscode/${latest_version}/extensions/package.json" | jq '.dependencies')
+      jq ".dependencies = \$new_deps" --argjson new_deps "$vscode_deps" package.json >package.json.tmp && mv package.json.tmp package.json
+
+      mkdir -p dist/css dist/html dist/json
+      cp -r tmp/resources/app/extensions/css-language-features/server/dist/node/. dist/css/
+      cp -r tmp/resources/app/extensions/html-language-features/server/dist/node/. dist/html/
+      cp -r tmp/resources/app/extensions/json-language-features/server/dist/node/. dist/json/
+
+      # Prepend shebang to server entry points
+      sed -i '1i #!/usr/bin/env node' dist/css/cssServerMain.js
+      sed -i '1i #!/usr/bin/env node' dist/html/htmlServerMain.js
+      sed -i '1i #!/usr/bin/env node' dist/json/jsonServerMain.js
+      ;;
+    "microsoft/vscode-anycode")
+      mkdir -p dist/anycode
+      cp tmp/extension/dist/anycode.server.node.js dist/anycode/
+      sed -i '1i #!/usr/bin/env node' dist/anycode/anycode.server.node.js
+      ;;
+    "microsoft/vscode-eslint")
+      mkdir -p dist/eslint
+      cp -r tmp/extension/server/out/. dist/eslint/
+      sed -i '1i #!/usr/bin/env node' dist/eslint/eslintServer.js
+      ;;
+    esac
+
+    rm -rf "tmp"
+
+    # --- 4. Update package.json Version ---
+    jq ".metadata.versions[\"${repo}\"] = \"${latest_version}\"" package.json >package.json.tmp
+    mv package.json.tmp package.json
+    updates+=("${repo} ${current_version} → ${latest_version}")
+  done
+
+  # --- Final Steps ---
+
+  if [[ ${#updates[@]} -eq 0 ]]; then
+    echo "---"
+    echo "[SUCCESS] All packages are already up to date. Nothing to do."
+    exit 0
+  fi
+
+  echo "---"
+  echo "[INFO] Finalizing changes..."
+
+  # Copy the updated package.json and the new dist directory back to the project root
+  cd "$ORIG_DIR"
+  cp "${TMP_DIR}/package.json" .
+  rm -rf dist
+  mv "${TMP_DIR}/dist" .
+
+  # Create the commit message by joining the updates array
+  commit_message="chore: update vscode language servers: "
+  commit_message+=$(IFS=', ' ; echo "${updates[*]}")
+
+  echo "[INFO] Commit message: ${commit_message}"
+
+  # Bump version, commit, and publish
+  echo "[INFO] Preparing new release..."
+  npm version patch -m "$commit_message"
+  
+  echo "[INFO] Publishing to npm..."
+  npm publish --provenance --access public
+
+  git add package.json
+  git commit --amend --no-edit
+  git push && git push --tags
+
+  echo "---"
+  echo "[SUCCESS] Done!"
+  echo "[INFO] Updated package.json:"
+  jq . package.json
+}
+
+# Run the main function
+main
