@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { $ } from 'bun';
@@ -91,9 +91,9 @@ const packages: Package[] = [
     checkver: /\d+\.\d+\.\d+$/,
     downloadUrl: 'https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-archive',
     copy: {
-      'resources/app/extensions/css-language-features/server/dist/node/*': 'dist/css/',
-      'resources/app/extensions/html-language-features/server/dist/node/*': 'dist/html/',
-      'resources/app/extensions/json-language-features/server/dist/node/*': 'dist/json/',
+      'resources/app/extensions/css-language-features/server/dist/node/': 'dist/css/',
+      'resources/app/extensions/html-language-features/server/dist/node/': 'dist/html/',
+      'resources/app/extensions/json-language-features/server/dist/node/': 'dist/json/',
     },
     entries: ['dist/css/cssServerMain.js', 'dist/html/htmlServerMain.js', 'dist/json/jsonServerMain.js'],
   },
@@ -113,7 +113,7 @@ const packages: Package[] = [
     downloadUrl: (version) =>
       `https://dbaeumer.gallery.vsassets.io/_apis/public/gallery/publisher/dbaeumer/extension/vscode-eslint/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`,
     copy: {
-      'extension/server/out/*': 'dist/eslint/',
+      'extension/server/out/': 'dist/eslint/',
     },
     entries: ['dist/eslint/eslintServer.js'],
   },
@@ -137,13 +137,14 @@ for (const pkg of packages) {
   await $`curl -fsSL ${typeof pkg.downloadUrl === 'string' ? pkg.downloadUrl : pkg.downloadUrl(latestVersion)} -o tmp.zip`;
   await $`unzip -q tmp.zip -d tmp`;
   for (const [k, v] of Object.entries(pkg.copy)) {
-    await $`mkdir -p ${v}`;
-    await $`cp ${path.join('tmp', k)} ${v}`;
+    // await $`mkdir -p ${v}`;
+    // await $`cp ${path.join('tmp', k)} ${v}`;
+    await fs.cp(path.join('tmp', k), v, { recursive: true });
   }
   for (const entry of pkg.entries) {
     const file = Bun.file(path.join(os.tmpdir(), entry));
     if (!(await file.exists())) throw Error('Entry not found');
-    $`sed -i '1i #!/usr/bin/env node' ${entry}`;
+    await $`sed -i '1i #!/usr/bin/env node' ${entry}`;
   }
   await $`rm -r tmp`;
 
@@ -154,10 +155,11 @@ for (const pkg of packages) {
 await Bun.write('package.json', JSON.stringify(packageJson, null, 2));
 
 $.cwd(process.cwd());
-$`mkdir dist`;
-$`mv ${path.join(os.tmpdir(), 'dist')} ${process.cwd()}`;
-$`npm version patch -m "chore: update vscode language servers: ${updates.join(', ')}"`;
-$`npm publish --provenance --access public --dry-run`;
+// await $`mkdir dist`;
+// await $`mv ${path.join(os.tmpdir(), 'dist')} ${process.cwd()}`;
+await fs.cp(path.join(os.tmpdir(), 'dist'), 'dist/', { recursive: true });
+await $`npm version patch -m "chore: update vscode language servers: ${updates.join(', ')}"`;
+await $`npm publish --provenance --access public --dry-run`;
 
 console.log(packageJson);
 
