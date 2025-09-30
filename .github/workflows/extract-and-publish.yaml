@@ -38,5 +38,5 @@ jobs:
           ./script.sh
 
           git add package.json
-          git commit --amend -m "$commit_message"
+          git commit --amend -m "Update package.json"
           git push --force-with-lease && git push --tags
