@@ -22,15 +22,9 @@ main() {
   local updates=()
   local had_updates=false
 
-  # Clean up any previous temporary download files
-  rm -rf .tmp_download
-  mkdir -p .tmp_download
-  trap 'rm -rf .tmp_download' EXIT
-
+  # --- First Pass: Check for updates ---
+  echo "[INFO] Checking for updates..."
   for repo in "${packages[@]}"; do
-    echo "---"
-    echo "[INFO] Checking package: ${repo}"
-
     local current_version
     current_version=$(jq -r ".metadata.versions[\"${repo}\"]" package.json)
 
@@ -44,13 +38,45 @@ main() {
       die "Could not parse a valid version number from tag '${tag_name}' for ${repo}"
     fi
 
-    if [[ "$current_version" == "$latest_version" ]]; then
-      echo "[INFO] ${repo} is already up to date (${current_version})"
-      continue
+    if [[ "$current_version" != "$latest_version" ]]; then
+      echo "[UPDATE] Update available for ${repo}: ${current_version} -> ${latest_version}"
+      had_updates=true
+    else
+      echo "[INFO] ${repo} is already at latest version (${latest_version})"
     fi
+  done
 
-    echo "[UPDATE] Update available for ${repo}: ${current_version} -> ${latest_version}"
-    had_updates=true
+  # --- Exit Early if No Updates ---
+  if [[ "$had_updates" == false ]]; then
+    echo "---"
+    echo "[SUCCESS] All packages are already up to date. Nothing to do."
+    exit 0
+  fi
+
+  # --- Second Pass: Download ALL packages ---
+  echo "---"
+  echo "[INFO] Updates found. Downloading ALL packages..."
+
+  # Clean up any previous temporary download files
+  rm -rf .tmp_download
+  mkdir -p .tmp_download
+  trap 'rm -rf .tmp_download' EXIT
+
+  # Remove old dist directory
+  rm -rf dist
+
+  for repo in "${packages[@]}"; do
+    echo "---"
+    echo "[INFO] Processing package: ${repo}"
+
+    local current_version
+    current_version=$(jq -r ".metadata.versions[\"${repo}\"]" package.json)
+
+    local tag_name
+    tag_name=$(github_api_get_latest_release_tag "$repo") || die "Failed to fetch latest tag for ${repo}."
+
+    local latest_version
+    latest_version=$(echo "$tag_name" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
     # --- Download and Extract ---
     local download_url
@@ -109,10 +135,13 @@ main() {
     # --- Update package.json Version ---
     jq ".metadata.versions[\"${repo}\"] = \"${latest_version}\"" package.json >package.json.tmp
     mv package.json.tmp package.json
-    updates+=("${repo} ${current_version} → ${latest_version}")
+    
+    if [[ "$current_version" != "$latest_version" ]]; then
+      updates+=("${repo} ${current_version} → ${latest_version}")
+    fi
   done
 
-  # --- Exit Early if No Updates ---
+  # --- Exit based on whether there were version updates ---
   if [[ "$had_updates" == false ]]; then
     echo "---"
     echo "[SUCCESS] All packages are already up to date. Nothing to do."
