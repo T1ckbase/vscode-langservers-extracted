@@ -27,16 +27,24 @@ jobs:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Extract and Publish new version
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Configure Git
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
+      - name: Extract and Publish new version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
           chmod +x ./script.sh
           ./script.sh
 
-          git add package.json
-          git commit --amend -m "Update package.json"
-          git push --force-with-lease && git push --tags
+      - name: Push changes
+        run: |
+          if git describe --exact-match HEAD 2>/dev/null; then
+            git add package.json
+            git commit --amend --no-edit
+            git push --follow-tags --force-with-lease
+          else
+            echo "No updates were made, skipping push"
+          fi

@@ -25,23 +25,16 @@ github_api_get_latest_release_tag() {
 
 main() {
 
-  # Work in a temporary directory and ensure it's cleaned up on exit.
-  ORIG_DIR=$(pwd)
-  TMP_DIR=$(mktemp -d)
-  trap 'rm -rf "$TMP_DIR"' EXIT
-  cd "$TMP_DIR"
-  echo "[INFO] Working in temporary directory: $TMP_DIR"
-
-  # Create a local copy of package.json to modify.
-  cp "${ORIG_DIR}/package.json" .
+  echo "[INFO] Working in current directory: $(pwd)"
 
   # Define packages to update.
   local packages=("microsoft/vscode" "microsoft/vscode-anycode" "microsoft/vscode-eslint")
   local updates=()
 
-  # Bump version, commit, and publish
-  echo "[INFO] Preparing new release..."
-  npm version patch -m "foo"
+  # Clean up any previous temporary download files
+  rm -rf .tmp_download
+  mkdir -p .tmp_download
+  trap 'rm -rf .tmp_download' EXIT
 
   for repo in "${packages[@]}"; do
     echo "---"
@@ -61,11 +54,6 @@ main() {
 
     if [[ -z "$latest_version" ]]; then
       die "Could not parse a valid version number from tag '${tag_name}' for ${repo}"
-    fi
-
-    if [[ "$current_version" == "$latest_version" ]]; then
-      echo "[SUCCESS] ${repo} is up to date (version ${current_version})."
-      continue
     fi
 
     echo "[UPDATE] Update available for ${repo}: ${current_version} -> ${latest_version}"
@@ -90,9 +78,9 @@ main() {
       ;;
     esac
 
-    curl -fsSL "$download_url" -o "tmp.zip"
-    unzip -q "tmp.zip" -d "tmp"
-    rm "tmp.zip"
+    curl -fsSL "$download_url" -o ".tmp_download/tmp.zip"
+    unzip -q ".tmp_download/tmp.zip" -d ".tmp_download/tmp"
+    rm ".tmp_download/tmp.zip"
 
     # --- 3. Copy Required Files ---
     echo "[INFO] Extracting server files..."
@@ -104,9 +92,9 @@ main() {
       jq ".dependencies = \$new_deps" --argjson new_deps "$vscode_deps" package.json >package.json.tmp && mv package.json.tmp package.json
 
       mkdir -p dist/css dist/html dist/json
-      cp -r tmp/resources/app/extensions/css-language-features/server/dist/node/. dist/css/
-      cp -r tmp/resources/app/extensions/html-language-features/server/dist/node/. dist/html/
-      cp -r tmp/resources/app/extensions/json-language-features/server/dist/node/. dist/json/
+      cp -r .tmp_download/tmp/resources/app/extensions/css-language-features/server/dist/node/. dist/css/
+      cp -r .tmp_download/tmp/resources/app/extensions/html-language-features/server/dist/node/. dist/html/
+      cp -r .tmp_download/tmp/resources/app/extensions/json-language-features/server/dist/node/. dist/json/
 
       # Prepend shebang to server entry points
       sed -i '1i #!/usr/bin/env node' dist/css/cssServerMain.js
@@ -115,17 +103,17 @@ main() {
       ;;
     "microsoft/vscode-anycode")
       mkdir -p dist/anycode
-      cp tmp/extension/dist/anycode.server.node.js dist/anycode/
+      cp .tmp_download/tmp/extension/dist/anycode.server.node.js dist/anycode/
       sed -i '1i #!/usr/bin/env node' dist/anycode/anycode.server.node.js
       ;;
     "microsoft/vscode-eslint")
       mkdir -p dist/eslint
-      cp -r tmp/extension/server/out/. dist/eslint/
+      cp -r .tmp_download/tmp/extension/server/out/. dist/eslint/
       sed -i '1i #!/usr/bin/env node' dist/eslint/eslintServer.js
       ;;
     esac
 
-    rm -rf "tmp"
+    rm -rf ".tmp_download/tmp"
 
     # --- 4. Update package.json Version ---
     jq ".metadata.versions[\"${repo}\"] = \"${latest_version}\"" package.json >package.json.tmp
@@ -144,16 +132,13 @@ main() {
   echo "---"
   echo "[INFO] Finalizing changes..."
 
-  # Copy the updated package.json and the new dist directory back to the project root
-  cd "$ORIG_DIR"
-  cp "${TMP_DIR}/package.json" .
-  rm -rf dist
-  mv "${TMP_DIR}/dist" .
-
   # Create the commit message by joining the updates array
   commit_message="chore: update vscode language servers:"
   commit_message+=$(IFS=,; echo " ${updates[*]}")
 
+  # Bump version, commit, and publish
+  echo "[INFO] Preparing new release..."
+  npm version patch -m "$commit_message"
  
   echo "[INFO] Publishing to npm..."
   npm publish --provenance --access public
