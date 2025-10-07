@@ -45,12 +45,18 @@ jobs:
       - name: Bump version and commit
         if: steps.extract.outputs.has_updates == 'true'
         run: |
-          # Commit the package.json changes
+          # Commit the package.json metadata changes
           git add package.json
           git commit -m "chore: update vscode language server versions"
           
-          # Bump version (creates new commit + tag)
-          npm version patch -m "chore: release v%s"
+          # Manually bump version in package.json
+          npm version patch --no-git-tag-version
+          
+          # Commit the version bump
+          NEW_VERSION=$(jq -r .version package.json)
+          git add package.json
+          git commit -m "chore: release v${NEW_VERSION}"
+          git tag "v${NEW_VERSION}"
 
       - name: Publish to npm
         if: steps.extract.outputs.has_updates == 'true'
