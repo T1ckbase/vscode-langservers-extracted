@@ -42,8 +42,6 @@ jobs:
       - name: Push changes
         run: |
           if git describe --exact-match HEAD 2>/dev/null; then
-            git add package.json
-            git commit --amend --no-edit
             git push --follow-tags --force-with-lease
           else
             echo "No updates were made, skipping push"
