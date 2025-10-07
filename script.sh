@@ -138,6 +138,7 @@ main() {
 
   # Bump version, commit, and publish
   echo "[INFO] Preparing new release..."
+  git add .
   npm version patch -m "$commit_message"
  
   echo "[INFO] Publishing to npm..."
