@@ -37,7 +37,7 @@
   },
   "metadata": {
     "versions": {
-      "microsoft/vscode": "1.105.0",
+      "microsoft/vscode": "1.105.1",
       "microsoft/vscode-eslint": "3.0.16",
       "microsoft/vscode-anycode": "0.0.75"
     }
