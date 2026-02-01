@@ -1,0 +1,48 @@
+name: Extract Dry Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  extract-dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Check for updates and extract files (dry run)
+        id: extract
+        run: |
+          chmod +x ./script.sh
+          if ./script.sh; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+          else
+            status=$?
+            if [ "$status" -eq 2 ]; then
+              echo "has_updates=false" >> $GITHUB_OUTPUT
+            else
+              exit "$status"
+            fi
+          fi
+
+      - name: Show changes
+        if: steps.extract.outputs.has_updates == 'true'
+        run: |
+          git status --short
+          echo "---"
+          git diff --stat
+
+      - name: npm publish dry run
+        if: steps.extract.outputs.has_updates == 'true'
+        run: npm publish --dry-run --access public

@@ -18,6 +18,8 @@ github_api_get_latest_release_tag() {
 main() {
   echo "[INFO] Working in current directory: $(pwd)"
 
+  local no_updates_exit_code=2
+
   local packages=("microsoft/vscode" "microsoft/vscode-anycode" "microsoft/vscode-eslint")
   local updates=()
   local had_updates=false
@@ -50,7 +52,7 @@ main() {
   if [[ "$had_updates" == false ]]; then
     echo "---"
     echo "[SUCCESS] All packages are already up to date. Nothing to do."
-    exit 0
+    exit "$no_updates_exit_code"
   fi
 
   # --- Second Pass: Download ALL packages ---
@@ -141,16 +143,10 @@ main() {
     fi
   done
 
-  # --- Exit based on whether there were version updates ---
-  if [[ "$had_updates" == false ]]; then
-    echo "---"
-    echo "[SUCCESS] All packages are already up to date. Nothing to do."
-    exit 0
-  fi
-
   echo "---"
   echo "[SUCCESS] Updated ${#updates[@]} package(s)"
   echo "[INFO] Changes ready for commit and publish"
+  exit 0
 }
 
 main
