@@ -36,6 +36,10 @@ jobs:
             fi
           fi
 
+      - name: Bump version (dry run)
+        if: steps.extract.outputs.has_updates == 'true'
+        run: npm version patch --no-git-tag-version
+
       - name: Show changes
         if: steps.extract.outputs.has_updates == 'true'
         run: |
