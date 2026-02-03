@@ -1,6 +1,6 @@
 {
   "name": "@t1ckbase/vscode-langservers-extracted",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Extracted language servers from Microsoft’s repositories for various languages (CSS, HTML, JSON), including Anycode and ESLint.",
   "author": "t1ckbase",
   "license": "MIT",
