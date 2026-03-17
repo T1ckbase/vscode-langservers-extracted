@@ -13,6 +13,25 @@ github_api_get_latest_release_tag() {
   curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" | jq -r '.tag_name'
 }
 
+find_vscode_resources_dir() {
+  local extract_dir="$1"
+  local candidate
+
+  if [[ -d "$extract_dir/resources/app/extensions" ]]; then
+    printf '%s\n' "$extract_dir/resources"
+    return 0
+  fi
+
+  for candidate in "$extract_dir"/*/resources; do
+    if [[ -d "$candidate/app/extensions" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  die "Could not locate VS Code resources directory under ${extract_dir}"
+}
+
 # --- Main Logic ---
 
 main() {
@@ -108,13 +127,15 @@ main() {
     case "$repo" in
     "microsoft/vscode")
       echo "[INFO] Updating dependencies from VS Code source..."
+      local resources_dir
       vscode_deps=$(curl -fsSL "https://raw.githubusercontent.com/microsoft/vscode/${latest_version}/extensions/package.json" | jq '.dependencies')
       jq ".dependencies = \$new_deps" --argjson new_deps "$vscode_deps" package.json >package.json.tmp && mv package.json.tmp package.json
+      resources_dir=$(find_vscode_resources_dir ".tmp_download/tmp")
 
       mkdir -p dist/css dist/html dist/json
-      cp -r .tmp_download/tmp/resources/app/extensions/css-language-features/server/dist/node/. dist/css/
-      cp -r .tmp_download/tmp/resources/app/extensions/html-language-features/server/dist/node/. dist/html/
-      cp -r .tmp_download/tmp/resources/app/extensions/json-language-features/server/dist/node/. dist/json/
+      cp -r "$resources_dir/app/extensions/css-language-features/server/dist/node/." dist/css/
+      cp -r "$resources_dir/app/extensions/html-language-features/server/dist/node/." dist/html/
+      cp -r "$resources_dir/app/extensions/json-language-features/server/dist/node/." dist/json/
 
       sed -i '1i #!/usr/bin/env node' dist/css/cssServerMain.js
       sed -i '1i #!/usr/bin/env node' dist/html/htmlServerMain.js
