@@ -21,7 +21,7 @@
   "author": "t1ckbase",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/T1ckbase/vscode-langservers-extracted"
+    "url": "git+https://github.com/T1ckbase/vscode-langservers-extracted.git"
   },
   "bin": {
     "vscode-anycode-language-server": "dist/anycode/anycode.server.node.js",
