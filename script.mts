@@ -36,15 +36,6 @@ function getVsixUrl(publisher: string, extension: string, version: string): stri
   return `https://${publisher}.gallery.vsassets.io/_apis/public/gallery/publisher/${publisher}/extension/${extension}/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`;
 }
 
-async function prependShebangToFile(path: string): Promise<void> {
-  const file = Bun.file(path);
-  if (!(await file.exists())) {
-    throw new Error(`Expected file does not exist: ${path}`);
-  }
-
-  await Bun.write(path, addNodeShebang(await file.text()));
-}
-
 async function downloadVsix(url: string, archivePath: string): Promise<void> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to download ${url}: ${res.status} ${res.statusText}`);
@@ -60,7 +51,8 @@ async function unzip(archivePath: string, outputDir: string): Promise<void> {
 async function extractVscode(version: string): Promise<void> {
   console.log(`Downloading microsoft/vscode v${version}...`);
 
-  const res = await fetch('https://code.visualstudio.com/sha/download?build=stable&os=linux-x64');
+  // https://code.visualstudio.com/Docs/supporting/FAQ
+  const res = await fetch(`https://update.code.visualstudio.com/${version}/linux-x64/stable`);
   if (!res.ok) throw new Error(`Failed to download microsoft/vscode: ${res.status} ${res.statusText}`);
 
   const archive = new Bun.Archive(await res.blob());
@@ -102,7 +94,9 @@ async function extractEslint(version: string): Promise<void> {
   await unzip('./tmp/vscode-eslint.vsix', './tmp/vscode-eslint');
 
   await cp('./tmp/vscode-eslint/extension/server/out', './dist/eslint', { recursive: true });
-  await prependShebangToFile('./dist/eslint/eslintServer.js');
+
+  const serverFile = Bun.file('./dist/eslint/eslintServer.js');
+  await Bun.write(serverFile, addNodeShebang(await serverFile.text()));
 }
 
 async function main(): Promise<void> {
@@ -116,20 +110,15 @@ async function main(): Promise<void> {
     await Promise.all(REPOS.map(async (repo) => [repo, await getLatestReleaseVersion(repo)] as const)),
   ) as Record<Repo, string>;
 
-  const updates: string[] = [];
-
-  for (const repo of REPOS) {
-    const currentVersion = packageJson.metadata.versions[repo];
-    const latestVersion = latestVersions[repo];
-
-    if (currentVersion !== latestVersion) {
-      updates.push(`${repo} ${currentVersion} -> ${latestVersion}`);
-      console.log(`Update available for ${repo}: ${currentVersion} -> ${latestVersion}`);
-      continue;
+  const updates = REPOS.filter((repo) => {
+    const isUpdate = packageJson.metadata.versions[repo] !== latestVersions[repo];
+    if (isUpdate) {
+      console.log(`Update available for ${repo}: ${packageJson.metadata.versions[repo]} -> ${latestVersions[repo]}`);
+    } else {
+      console.log(`${repo} is already at latest version (${latestVersions[repo]})`);
     }
-
-    console.log(`${repo} is already at latest version (${latestVersion})`);
-  }
+    return isUpdate;
+  });
 
   if (updates.length === 0) {
     if (FORCE) {
