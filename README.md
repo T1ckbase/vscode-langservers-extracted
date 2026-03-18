@@ -3,6 +3,9 @@
 [![NPM Version](https://img.shields.io/npm/v/@t1ckbase/vscode-langservers-extracted.svg)](https://www.npmjs.com/package/@t1ckbase/vscode-langservers-extracted)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> [!WARNING]
+> This project is maintained for personal use only. It has not been thoroughly tested, and no guarantees are made regarding its stability, correctness, or suitability for production environments. Use at your own risk.
+
 HTML/CSS/JSON language servers extracted from [vscode](https://github.com/Microsoft/vscode).
 
 Anycode language server extracted from [vscode-anycode](https://github.com/microsoft/vscode-anycode).
