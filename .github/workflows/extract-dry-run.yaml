@@ -24,8 +24,14 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
       - name: Extract files (dry run)
         run: bun ./script.mts --force
+
+      - name: Run LSP smoke tests
+        run: bun test lsp.test.mts
 
       - name: Bump version (dry run)
         run: npm version patch --no-git-tag-version
