@@ -55,7 +55,13 @@ for (const [name, relativePath] of servers) {
     }
 
     const child = spawn('node', [path, '--stdio'], { stdio: ['pipe', 'pipe', 'pipe'] });
-    const exited = once(child, 'exit') as Promise<[number | null, NodeJS.Signals | null]>;
+    const exited = Promise.race([
+      once(child, 'exit') as Promise<[number | null, NodeJS.Signals | null]>,
+      once(child, 'error').then(([error]) => {
+        throw error;
+      }),
+    ]);
+    const timedExit = withTimeout(exited, `${name} exit`);
     const stderr = readStderr(child.stderr);
 
     const connection = createProtocolConnection(
@@ -86,7 +92,7 @@ for (const [name, relativePath] of servers) {
       await withTimeout(connection.sendRequest(ShutdownRequest.type), `${name} shutdown`);
       connection.sendNotification(ExitNotification.type);
 
-      const [code] = await withTimeout(exited, `${name} exit`);
+      const [code] = await timedExit;
       expect(code).toBe(0);
     } catch (error) {
       child.kill();
@@ -100,7 +106,7 @@ for (const [name, relativePath] of servers) {
         child.kill();
       }
 
-      await exited.catch(() => undefined);
+      await timedExit.catch(() => undefined);
     }
   });
 }
