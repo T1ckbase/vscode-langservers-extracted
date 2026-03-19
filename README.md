@@ -8,7 +8,7 @@ and the ESLint language server from [vscode-eslint](https://github.com/microsoft
 
 This project exists because the original repository by [@hrsh7th](https://github.com/hrsh7th/vscode-langservers-extracted) is no longer actively updated, so I created this for my own use and keep it updated.
 
-A GitHub Actions workflow runs weekly to check for upstream updates, rebuild the package, run smoke tests, and publish new versions automatically.
+A GitHub Actions workflow runs weekly to check for upstream updates, download and extract the latest language server files, run smoke tests, and publish new versions automatically.
 
 ## Notes
 
