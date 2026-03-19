@@ -1,4 +1,4 @@
-import { cp, rm } from 'node:fs/promises';
+import { chmod, cp, rm } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 
 type Repo = (typeof REPOS)[number];
@@ -9,6 +9,11 @@ const FORCE = process.argv.includes('--force');
 
 function addNodeShebang(text: string): string {
   return text.startsWith('#!/usr/bin/env node\n') ? text : `#!/usr/bin/env node\n${text}`;
+}
+
+async function writeExecutable(path: string, text: string): Promise<void> {
+  await Bun.write(path, addNodeShebang(text));
+  await chmod(path, 0o755);
 }
 
 async function getLatestReleaseVersion(repo: string): Promise<string> {
@@ -78,13 +83,12 @@ async function extractVscode(version: string): Promise<void> {
 
       const name = basename(file.name);
       const text = await file.text();
-      const output = name === entrypoint ? addNodeShebang(text) : text;
-
       if (name === entrypoint) {
         entrypointFound = true;
+        await writeExecutable(join(`./dist/${language}`, name), text);
+      } else {
+        await Bun.write(join(`./dist/${language}`, name), text);
       }
-
-      await Bun.write(join(`./dist/${language}`, name), output);
     }
 
     if (fileCount === 0) {
@@ -106,7 +110,7 @@ async function extractEslint(version: string): Promise<void> {
   await cp('./tmp/vscode-eslint/extension/server/out', './dist/eslint', { recursive: true });
 
   const serverFile = Bun.file('./dist/eslint/eslintServer.js');
-  await Bun.write(serverFile, addNodeShebang(await serverFile.text()));
+  await writeExecutable('./dist/eslint/eslintServer.js', await serverFile.text());
 }
 
 async function main(): Promise<void> {
