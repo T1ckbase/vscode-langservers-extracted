@@ -28,6 +28,8 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Extract files (dry run)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun ./script.mts --force
 
       - name: Run LSP smoke tests

@@ -12,7 +12,17 @@ function addNodeShebang(text: string): string {
 }
 
 async function getLatestReleaseVersion(repo: string): Promise<string> {
-  const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`);
+  const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2026-03-10',
+      ...(Bun.env.GITHUB_TOKEN
+        ? {
+            Authorization: `Bearer ${Bun.env.GITHUB_TOKEN}`,
+          }
+        : {}),
+    },
+  });
   if (!res.ok) throw new Error(`Failed to fetch the latest release for ${repo}: ${res.status} ${res.statusText}`);
 
   const data = (await res.json()) as { tag_name?: string };
