@@ -128,7 +128,7 @@ async function main(): Promise<void> {
       console.log('All packages are already up to date. Nothing to do.');
       process.exit(NO_UPDATES_EXIT_CODE);
     }
-    console.log('All packages are already up to date. Rebuilding anyway because --force was passed.');
+    console.log('All packages are already up to date. Downloading and extracting anyway because --force was passed.');
   }
 
   console.log('---');
