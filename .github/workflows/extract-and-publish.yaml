@@ -63,10 +63,10 @@ jobs:
       - name: Check executable bits
         if: steps.extract.outputs.has_updates == 'true'
         run: |
-          test -x dist/css/cssServerMain.js
-          test -x dist/html/htmlServerMain.js
-          test -x dist/json/jsonServerMain.js
-          test -x dist/eslint/eslintServer.js
+          for server in $(jq -r '.bin | values[]' package.json); do
+            echo "Checking executable bit: $server"
+            test -x "$server"
+          done
 
       - name: Bump version and commit
         if: steps.extract.outputs.has_updates == 'true'
