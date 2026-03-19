@@ -35,6 +35,13 @@ jobs:
       - name: Run LSP smoke tests
         run: bun test lsp.test.mts
 
+      - name: Check executable bits
+        run: |
+          test -x dist/css/cssServerMain.js
+          test -x dist/html/htmlServerMain.js
+          test -x dist/json/jsonServerMain.js
+          test -x dist/eslint/eslintServer.js
+
       - name: Bump version (dry run)
         run: npm version patch --no-git-tag-version
 
