@@ -7,12 +7,9 @@ const NO_UPDATES_EXIT_CODE = 2;
 const REPOS = ['microsoft/vscode', 'microsoft/vscode-eslint'] as const;
 const FORCE = process.argv.includes('--force');
 
-function addNodeShebang(text: string): string {
-  return text.startsWith('#!/usr/bin/env node\n') ? text : `#!/usr/bin/env node\n${text}`;
-}
-
 async function writeExecutable(path: string, text: string): Promise<void> {
-  await Bun.write(path, addNodeShebang(text));
+  const withShebang = text.startsWith('#!') ? text : `#!/usr/bin/env node\n${text}`;
+  await Bun.write(path, withShebang);
   await chmod(path, 0o755);
 }
 
@@ -49,18 +46,6 @@ async function getVscodeExtensionsDependencies(version: string): Promise<Record<
 
 function getVsixUrl(publisher: string, extension: string, version: string): string {
   return `https://${publisher}.gallery.vsassets.io/_apis/public/gallery/publisher/${publisher}/extension/${extension}/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`;
-}
-
-async function downloadVsix(url: string, archivePath: string): Promise<void> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to download ${url}: ${res.status} ${res.statusText}`);
-
-  await Bun.write(archivePath, await res.blob());
-}
-
-async function unzip(archivePath: string, outputDir: string): Promise<void> {
-  await rm(outputDir, { recursive: true, force: true });
-  await Bun.$`unzip -oq ${archivePath} -d ${outputDir}`;
 }
 
 async function extractVscode(version: string): Promise<void> {
@@ -104,9 +89,12 @@ async function extractVscode(version: string): Promise<void> {
 async function extractEslint(version: string): Promise<void> {
   console.log(`Downloading microsoft/vscode-eslint v${version}...`);
 
-  await downloadVsix(getVsixUrl('dbaeumer', 'vscode-eslint', version), './tmp/vscode-eslint.vsix');
-  await unzip('./tmp/vscode-eslint.vsix', './tmp/vscode-eslint');
+  const res = await fetch(getVsixUrl('dbaeumer', 'vscode-eslint', version));
+  if (!res.ok) throw new Error(`Failed to download vscode-eslint: ${res.status} ${res.statusText}`);
+  await Bun.write('./tmp/vscode-eslint.vsix', await res.blob());
 
+  await rm('./tmp/vscode-eslint', { recursive: true, force: true });
+  await Bun.$`unzip -oq ./tmp/vscode-eslint.vsix -d ./tmp/vscode-eslint`;
   await cp('./tmp/vscode-eslint/extension/server/out', './dist/eslint', { recursive: true });
 
   const serverFile = Bun.file('./dist/eslint/eslintServer.js');
@@ -126,23 +114,21 @@ async function main(): Promise<void> {
 
   const updates = REPOS.filter((repo) => {
     const isUpdate = packageJson.metadata.versions[repo] !== latestVersions[repo];
-    if (isUpdate) {
-      console.log(`Update available for ${repo}: ${packageJson.metadata.versions[repo]} -> ${latestVersions[repo]}`);
-    } else {
-      console.log(`${repo} is already at latest version (${latestVersions[repo]})`);
-    }
+    console.log(
+      isUpdate
+        ? `Update available for ${repo}: ${packageJson.metadata.versions[repo]} -> ${latestVersions[repo]}`
+        : `${repo} is already at latest version (${latestVersions[repo]})`,
+    );
     return isUpdate;
   });
 
+  console.log('---');
   if (updates.length === 0) {
-    if (FORCE) {
-      console.log('---');
-      console.log('All packages are already up to date. Rebuilding anyway because --force was passed.');
-    } else {
-      console.log('---');
+    if (!FORCE) {
       console.log('All packages are already up to date. Nothing to do.');
       process.exit(NO_UPDATES_EXIT_CODE);
     }
+    console.log('All packages are already up to date. Rebuilding anyway because --force was passed.');
   }
 
   console.log('---');
@@ -170,7 +156,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
+  console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
