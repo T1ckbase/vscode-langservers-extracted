@@ -1,39 +1,37 @@
-# vscode-langservers-extracted
+# VSCode Langservers Extracted
 
-[![NPM Version](https://img.shields.io/npm/v/@t1ckbase/vscode-langservers-extracted.svg)](https://www.npmjs.com/package/@t1ckbase/vscode-langservers-extracted)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NPM Version](https://img.shields.io/npm/v/@t1ckbase/vscode-langservers-extracted?logo=npm&color=262626)](https://www.npmjs.com/package/@t1ckbase/vscode-langservers-extracted)
+[![Extract and Publish to npm](https://github.com/T1ckbase/vscode-langservers-extracted/actions/workflows/extract-and-publish.yaml/badge.svg)](https://github.com/T1ckbase/vscode-langservers-extracted/actions/workflows/extract-and-publish.yaml)
 
-> [!WARNING]
-> This project is maintained for personal use only. It has not been thoroughly tested, and no guarantees are made regarding its stability, correctness, or suitability for production environments. Use at your own risk.
+HTML/CSS/JSON language servers extracted from [vscode](https://github.com/microsoft/vscode),
+and the ESLint language server from [vscode-eslint](https://github.com/microsoft/vscode-eslint).
 
-HTML/CSS/JSON language servers extracted from [vscode](https://github.com/Microsoft/vscode).
+This project exists because the original repository by [@hrsh7th](https://github.com/hrsh7th/vscode-langservers-extracted) is no longer actively updated, so I created this for my own use and keep it updated.
 
-Anycode language server extracted from [vscode-anycode](https://github.com/microsoft/vscode-anycode).
+A GitHub Actions workflow runs weekly to check for upstream updates, rebuild the package, run smoke tests, and publish new versions automatically.
 
-ESLint language server extracted from [vscode-eslint](https://github.com/microsoft/vscode-eslint).
+## Notes
 
-> [!NOTE]
-> The official Markdown language server is already available on npm and is not included in this package:<br>
-> [vscode-markdown-languageserver](https://www.npmjs.com/package/vscode-markdown-languageserver)
+- New versions are published automatically after only simple smoke testing, so breakages are possible. Please pin a specific version instead of relying on the latest release.
+- The official Markdown language server is already available on npm and is not included in this package:  
+  https://www.npmjs.com/package/vscode-markdown-languageserver
 
-# Why?
+## Usage
 
-[@hrsh7th](https://github.com/hrsh7th) provided awesome [Language Servers](https://github.com/hrsh7th/vscode-langservers-extracted) for the community but it didn't update for a long time.
+Install globally with npm (or your preferred package manager):
 
-# Usage
+```sh
+npm i -g @t1ckbase/vscode-langservers-extracted
+```
 
-You can install this via `npm i -g @t1ckbase/vscode-langservers-extracted`.
-
-After that, you get the following commands.
+The following commands are available:
 
 - `vscode-css-language-server`
 - `vscode-html-language-server`
 - `vscode-json-language-server`
-- `vscode-anycode-language-server`
 - `vscode-eslint-language-server`
 
-# THIRD-PARTY LICENSE
+## Third-Party Licenses
 
 - microsoft/vscode: https://github.com/microsoft/vscode/blob/main/LICENSE.txt
-- microsoft/vscode-anycode: https://github.com/microsoft/vscode-anycode/blob/main/LICENSE
 - microsoft/vscode-eslint: https://github.com/microsoft/vscode-eslint/blob/main/License.txt

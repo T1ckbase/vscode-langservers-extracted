@@ -3,7 +3,7 @@ name: Extract and Publish to npm
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 8 * * 2"
+    - cron: '0 8 * * 2'
 
 jobs:
   extract-and-publish:
@@ -27,14 +27,21 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version: "lts/*"
-          registry-url: "https://registry.npmjs.org"
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
       - name: Check for updates and extract files
         id: extract
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          chmod +x ./script.sh
-          if ./script.sh; then
+          if bun ./script.mts; then
             echo "has_updates=true" >> $GITHUB_OUTPUT
           else
             status=$?
@@ -44,6 +51,22 @@ jobs:
               exit "$status"
             fi
           fi
+
+      - name: Format
+        if: steps.extract.outputs.has_updates == 'true'
+        run: bunx oxfmt .
+
+      - name: Run LSP smoke tests
+        if: steps.extract.outputs.has_updates == 'true'
+        run: bun test lsp.test.mts
+
+      - name: Check executable bits
+        if: steps.extract.outputs.has_updates == 'true'
+        run: |
+          for server in $(jq -r '.bin | values[]' package.json); do
+            echo "Checking executable bit: $server"
+            test -x "$server"
+          done
 
       - name: Bump version and commit
         if: steps.extract.outputs.has_updates == 'true'
