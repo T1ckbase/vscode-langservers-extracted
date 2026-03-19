@@ -122,8 +122,8 @@ async function main(): Promise<void> {
     return isUpdate;
   });
 
-  console.log('---');
   if (updates.length === 0) {
+    console.log('---');
     if (!FORCE) {
       console.log('All packages are already up to date. Nothing to do.');
       process.exit(NO_UPDATES_EXIT_CODE);
