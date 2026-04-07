@@ -1,7 +1,7 @@
 {
   "$schema": "http://www.schemastore.org/package.json",
   "name": "@t1ckbase/vscode-langservers-extracted",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Extracted language servers from Microsoft’s repositories for various languages (CSS, HTML, JSON) and ESLint.",
   "keywords": [
     "css",
