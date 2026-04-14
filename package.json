@@ -5,13 +5,16 @@
   "description": "Extracted language servers from Microsoft’s repositories for various languages (CSS, HTML, JSON) and ESLint.",
   "keywords": [
     "css",
+    "emacs",
     "eslint",
+    "helix",
     "html",
     "json",
     "language-server",
     "language-server-protocol",
     "lsp",
     "neovim",
+    "vim",
     "vscode"
   ],
   "bugs": {

@@ -32,6 +32,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bun ./script.mts --force
 
+      - name: Sync lockfile
+        run: bun install
+
       - name: Run LSP smoke tests
         run: bun test lsp.test.mts
 

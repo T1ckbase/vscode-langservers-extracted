@@ -52,6 +52,10 @@ jobs:
             fi
           fi
 
+      - name: Sync lockfile
+        if: steps.extract.outputs.has_updates == 'true'
+        run: bun install
+
       - name: Format
         if: steps.extract.outputs.has_updates == 'true'
         run: bunx oxfmt .
@@ -72,7 +76,7 @@ jobs:
         if: steps.extract.outputs.has_updates == 'true'
         run: |
           # Commit the package.json metadata changes
-          git add package.json
+          git add package.json bun.lock
           git commit -m "chore: update vscode language server versions"
 
           # Manually bump version in package.json
