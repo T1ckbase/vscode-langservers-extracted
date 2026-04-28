@@ -39,7 +39,7 @@
     "access": "public"
   },
   "dependencies": {
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -49,7 +49,7 @@
   },
   "metadata": {
     "versions": {
-      "microsoft/vscode": "1.115.0",
+      "microsoft/vscode": "1.117.0",
       "microsoft/vscode-eslint": "3.0.24"
     }
   }
