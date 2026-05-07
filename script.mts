@@ -5,7 +5,12 @@ type Repo = (typeof REPOS)[number];
 
 const NO_UPDATES_EXIT_CODE = 2;
 const REPOS = ['microsoft/vscode', 'microsoft/vscode-eslint'] as const;
-const FORCE = process.argv.includes('--force');
+const UPDATE = process.argv.includes('--update');
+
+type GitHubRelease = {
+  name?: string;
+  tag_name?: string;
+};
 
 async function writeExecutable(path: string, text: string): Promise<void> {
   const withShebang = text.startsWith('#!') ? text : `#!/usr/bin/env node\n${text}`;
@@ -14,7 +19,7 @@ async function writeExecutable(path: string, text: string): Promise<void> {
 }
 
 async function getLatestReleaseVersion(repo: string): Promise<string> {
-  const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
+  const res = await fetch(`https://api.github.com/repos/${repo}/releases`, {
     headers: {
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2026-03-10',
@@ -27,8 +32,9 @@ async function getLatestReleaseVersion(repo: string): Promise<string> {
   });
   if (!res.ok) throw new Error(`Failed to fetch the latest release for ${repo}: ${res.status} ${res.statusText}`);
 
-  const data = (await res.json()) as { tag_name?: string };
-  const version = data.tag_name?.match(/\d+\.\d+\.\d+/)?.[0];
+  const releases = (await res.json()) as GitHubRelease[];
+  const release = releases.find((release) => !release.name?.toLowerCase().includes('copilot'));
+  const version = release?.tag_name?.match(/\d+\.\d+\.\d+/)?.[0];
   if (!version) throw new Error(`Failed to parse a version number from the latest release tag for ${repo}`);
 
   return version;
@@ -107,43 +113,57 @@ async function main(): Promise<void> {
     metadata: { versions: Record<Repo, string> };
   };
 
-  console.log('Checking for updates...');
-  const latestVersions = Object.fromEntries(
-    await Promise.all(REPOS.map(async (repo) => [repo, await getLatestReleaseVersion(repo)] as const)),
-  ) as Record<Repo, string>;
+  const versions = { ...packageJson.metadata.versions };
+  let updates: Repo[] = [];
 
-  const updates = REPOS.filter((repo) => {
-    const isUpdate = packageJson.metadata.versions[repo] !== latestVersions[repo];
-    console.log(
-      isUpdate
-        ? `Update available for ${repo}: ${packageJson.metadata.versions[repo]} -> ${latestVersions[repo]}`
-        : `${repo} is already at latest version (${latestVersions[repo]})`,
-    );
-    return isUpdate;
-  });
+  if (UPDATE) {
+    console.log('Checking for updates...');
+    const latestVersions = Object.fromEntries(
+      await Promise.all(REPOS.map(async (repo) => [repo, await getLatestReleaseVersion(repo)] as const)),
+    ) as Record<Repo, string>;
 
-  if (updates.length === 0) {
-    console.log('---');
-    if (!FORCE) {
+    updates = REPOS.filter((repo) => {
+      const isUpdate = packageJson.metadata.versions[repo] !== latestVersions[repo];
+      console.log(
+        isUpdate
+          ? `Update available for ${repo}: ${packageJson.metadata.versions[repo]} -> ${latestVersions[repo]}`
+          : `${repo} is already at latest version (${latestVersions[repo]})`,
+      );
+      return isUpdate;
+    });
+
+    if (updates.length === 0) {
+      console.log('---');
       console.log('All packages are already up to date. Nothing to do.');
       process.exit(NO_UPDATES_EXIT_CODE);
     }
-    console.log('All packages are already up to date. Downloading and extracting anyway because --force was passed.');
+
+    Object.assign(versions, latestVersions);
+  } else {
+    console.log('Building pinned package versions...');
+    for (const repo of REPOS) {
+      console.log(`${repo}: ${versions[repo]}`);
+    }
   }
 
   console.log('---');
   console.log('Downloading all packages...');
   await rm('./dist', { recursive: true, force: true });
 
-  await extractVscode(latestVersions['microsoft/vscode']);
-  await extractEslint(latestVersions['microsoft/vscode-eslint']);
-  packageJson.dependencies = await getVscodeExtensionsDependencies(latestVersions['microsoft/vscode']);
+  await extractVscode(versions['microsoft/vscode']);
+  await extractEslint(versions['microsoft/vscode-eslint']);
+  packageJson.dependencies = await getVscodeExtensionsDependencies(versions['microsoft/vscode']);
 
-  Object.assign(packageJson.metadata.versions, latestVersions);
+  Object.assign(packageJson.metadata.versions, versions);
 
   await Bun.write('./package.json', `${JSON.stringify(packageJson, null, 2)}\n`);
 
   console.log('---');
+  if (!UPDATE) {
+    console.log('Rebuilt pinned package versions');
+    return;
+  }
+
   if (updates.length === 0) {
     console.log('Rebuilt packages without upstream version changes');
     return;

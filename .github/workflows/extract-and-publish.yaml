@@ -41,7 +41,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if bun ./script.mts; then
+          if bun ./script.mts --update; then
             echo "has_updates=true" >> $GITHUB_OUTPUT
           else
             status=$?

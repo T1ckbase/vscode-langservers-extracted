@@ -30,7 +30,7 @@ jobs:
       - name: Extract files (dry run)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bun ./script.mts --force
+        run: bun ./script.mts --update
 
       - name: Sync lockfile
         run: bun install
