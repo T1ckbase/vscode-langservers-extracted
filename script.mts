@@ -8,7 +8,9 @@ const REPOS = ['microsoft/vscode', 'microsoft/vscode-eslint'] as const;
 const UPDATE = process.argv.includes('--update');
 
 type GitHubRelease = {
+  draft?: boolean;
   name?: string;
+  prerelease?: boolean;
   tag_name?: string;
 };
 
@@ -33,7 +35,9 @@ async function getLatestReleaseVersion(repo: string): Promise<string> {
   if (!res.ok) throw new Error(`Failed to fetch the latest release for ${repo}: ${res.status} ${res.statusText}`);
 
   const releases = (await res.json()) as GitHubRelease[];
-  const release = releases.find((release) => !release.name?.toLowerCase().includes('copilot'));
+  const release = releases.find(
+    (release) => !release.draft && !release.prerelease && !release.name?.toLowerCase().includes('copilot'),
+  );
   const version = release?.tag_name?.match(/\d+\.\d+\.\d+/)?.[0];
   if (!version) throw new Error(`Failed to parse a version number from the latest release tag for ${repo}`);
 
