@@ -21,7 +21,7 @@
     "url": "https://github.com/T1ckbase/vscode-langservers-extracted/issues"
   },
   "license": "MIT",
-  "author": "t1ckbase",
+  "author": "T1ckbase <146760065+T1ckbase@users.noreply.github.com> (https://github.com/T1ckbase)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/T1ckbase/vscode-langservers-extracted.git"
@@ -35,6 +35,7 @@
   "files": [
     "dist"
   ],
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },

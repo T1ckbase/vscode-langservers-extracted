@@ -30,13 +30,13 @@ jobs:
       - name: Extract files (dry run)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bun ./script.mts --force
+        run: bun ./script.ts --force
 
       - name: Sync lockfile
         run: bun install
 
       - name: Run LSP smoke tests
-        run: bun test lsp.test.mts
+        run: bun test lsp.test.ts
 
       - name: Check executable bits
         run: |

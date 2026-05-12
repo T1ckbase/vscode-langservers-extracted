@@ -41,7 +41,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if bun ./script.mts; then
+          if bun ./script.ts; then
             echo "has_updates=true" >> $GITHUB_OUTPUT
           else
             status=$?
@@ -62,7 +62,7 @@ jobs:
 
       - name: Run LSP smoke tests
         if: steps.extract.outputs.has_updates == 'true'
-        run: bun test lsp.test.mts
+        run: bun test lsp.test.ts
 
       - name: Check executable bits
         if: steps.extract.outputs.has_updates == 'true'
