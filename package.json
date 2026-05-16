@@ -27,10 +27,11 @@
     "url": "git+https://github.com/T1ckbase/vscode-langservers-extracted.git"
   },
   "bin": {
-    "vscode-css-language-server": "dist/css/cssServerMain.js",
-    "vscode-eslint-language-server": "dist/eslint/eslintServer.js",
-    "vscode-html-language-server": "dist/html/htmlServerMain.js",
-    "vscode-json-language-server": "dist/json/jsonServerMain.js"
+    "vscode-css-language-server": "bin/css.js",
+    "vscode-eslint-language-server": "bin/eslint.cjs",
+    "vscode-html-language-server": "bin/html.js",
+    "vscode-json-language-server": "bin/json.js",
+    "vscode-markdown-language-server": "bin/markdown.js"
   },
   "files": [
     "dist"
