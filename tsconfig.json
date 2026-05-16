@@ -26,7 +26,7 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false,
+    "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["script.ts", "lsp.test.ts"],
+  "include": ["src/**/*"]
 }
