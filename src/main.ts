@@ -30,6 +30,11 @@ if (Bun.argv.includes('--update')) {
     `VS Code ESLint: ${packageJson.upstream['vscode-eslint']}${vscodeEslintUpdated ? ` -> ${vscodeEslint}` : ' (up to date)'}`,
   );
 
+  if (!vscodeUpdated && !vscodeEslintUpdated) {
+    console.info('No updates needed');
+    process.exit(0);
+  }
+
   packageJson.upstream.vscode = vscode;
   packageJson.upstream['vscode-eslint'] = vscodeEslint;
 
@@ -41,11 +46,7 @@ if (Bun.argv.includes('--update')) {
 
   await Bun.write(packageJsonPath, code);
 
-  if (vscodeUpdated || vscodeEslintUpdated) {
-    console.info('Updated package.json with new versions');
-  } else {
-    console.info('No updates needed');
-  }
+  console.info('Updated package.json with new versions');
 }
 
 fs.rmSync(distPath, { recursive: true, force: true });
