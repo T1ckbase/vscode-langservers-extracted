@@ -5,8 +5,7 @@
 
 A drop-in replacement for [@hrsh7th's `vscode-langservers-extracted`](https://github.com/hrsh7th/vscode-langservers-extracted).
 
-The HTML, CSS, JSON, and Markdown language servers are extracted from [vscode](https://github.com/microsoft/vscode),<br>
-while the ESLint language server is extracted from [vscode-eslint](https://github.com/microsoft/vscode-eslint).
+The HTML, CSS, and JSON language servers are extracted from [VS Code](https://github.com/microsoft/vscode), while the ESLint language server is extracted from the [VS Code ESLint extension](https://github.com/microsoft/vscode-eslint). The Markdown language server is provided by the official [`vscode-markdown-languageserver`](https://www.npmjs.com/package/vscode-markdown-languageserver) package.
 
 ## Notes
 
