@@ -2,7 +2,7 @@
   "$schema": "http://www.schemastore.org/package.json",
   "name": "@t1ckbase/vscode-langservers-extracted",
   "version": "1.0.6",
-  "description": "Extracted language servers from Microsoft’s repositories for various languages (CSS, HTML, JSON) and ESLint.",
+  "description": "Language servers extracted from Microsoft repositories for CSS, HTML, JSON, Markdown, and ESLint.",
   "keywords": [
     "css",
     "emacs",
@@ -13,10 +13,12 @@
     "language-server",
     "language-server-protocol",
     "lsp",
+    "markdown",
     "neovim",
     "vim",
     "vscode"
   ],
+  "homepage": "https://github.com/T1ckbase/vscode-langservers-extracted#readme",
   "bugs": {
     "url": "https://github.com/T1ckbase/vscode-langservers-extracted/issues"
   },
@@ -40,19 +42,24 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "format": "oxfmt",
+    "build": "bun src/main.ts",
+    "update": "bun src/main.ts --update",
+    "test": "bun test src/lsp.test.ts"
+  },
   "dependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vscode-markdown-languageserver": "^0.5.0-alpha.15"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "oxfmt": "^0.41.0",
+    "oxfmt": "^0.50.0",
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageserver-protocol": "^3.17.5"
   },
-  "metadata": {
-    "versions": {
-      "microsoft/vscode": "1.118.1",
-      "microsoft/vscode-eslint": "3.0.24"
-    }
+  "upstream": {
+    "vscode": "1.120.0",
+    "vscode-eslint": "3.0.24"
   }
 }
