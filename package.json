@@ -58,6 +58,14 @@
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageserver-protocol": "^3.17.5"
   },
+  "devEngines": {
+    "packageManager": {
+      "name": "bun"
+    },
+    "runtime": {
+      "name": "bun"
+    }
+  },
   "upstream": {
     "vscode": "1.120.0",
     "vscode-eslint": "3.0.24"
