@@ -5,11 +5,13 @@
 
 A drop-in replacement for [@hrsh7th's `vscode-langservers-extracted`](https://github.com/hrsh7th/vscode-langservers-extracted).
 
-The HTML, CSS, and JSON language servers are extracted from [VS Code](https://github.com/microsoft/vscode), while the ESLint language server is extracted from the [VS Code ESLint extension](https://github.com/microsoft/vscode-eslint). The Markdown language server is provided by the official [`vscode-markdown-languageserver`](https://www.npmjs.com/package/vscode-markdown-languageserver) package.
+The HTML, CSS, and JSON language servers are extracted from [VS Code](https://github.com/microsoft/vscode), while the ESLint language server is extracted from the [VS Code ESLint extension](https://github.com/microsoft/vscode-eslint). Markdown language server uses the official [`vscode-markdown-languageserver`](https://www.npmjs.com/package/vscode-markdown-languageserver) package.
 
-## Notes
+## Patches
 
-- The HTML language server is patched to fix the hardcoded TypeScript lib path and update the lib target to ESNext.
+- HTML language server ([`src/vscode.ts`](src/vscode.ts)):
+  - Fixed hardcoded TypeScript lib path.
+  - Updated lib target to `ESNext`.
 
 ## Usage
 
