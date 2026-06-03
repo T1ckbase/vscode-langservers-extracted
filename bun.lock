@@ -6,7 +6,7 @@
       "name": "@t1ckbase/vscode-langservers-extracted",
       "dependencies": {
         "typescript": "^6.0.3",
-        "vscode-markdown-languageserver": "^0.5.0-alpha.15",
+        "vscode-markdown-languageserver": "^0.5.0-alpha.16",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -105,15 +105,13 @@
 
     "vscode-languageserver-types": ["vscode-languageserver-types@3.18.0", "", {}, "sha512-8TsGPNMIMiiBdkORgRSvLjuiEIiAFtO+KssmYWxQ+uSVvlf7RjK8YKCOjPzZ+YA04jXEV7+7LvkSmHkhpNS99g=="],
 
-    "vscode-markdown-languageserver": ["vscode-markdown-languageserver@0.5.0-alpha.15", "", { "dependencies": { "@vscode/l10n": "^0.0.11", "vscode-languageserver": "^9.0.1", "vscode-languageserver-textdocument": "^1.0.12", "vscode-languageserver-types": "^3.17.5", "vscode-markdown-languageservice": "^0.5.0-alpha.13", "vscode-uri": "^3.0.7" } }, "sha512-gXaVQKRJeOZ7uKkeWc3zS4fjtOUAZjQpPECWyN6dhVUJ4VWdSZ7iGip6mXfAT4ZUD9KpgQOFMSvvTmQzWDuMbg=="],
+    "vscode-markdown-languageserver": ["vscode-markdown-languageserver@0.5.0-alpha.16", "", { "dependencies": { "@vscode/l10n": "^0.0.11", "vscode-languageserver": "^9.0.1", "vscode-languageserver-textdocument": "^1.0.12", "vscode-languageserver-types": "^3.17.5", "vscode-markdown-languageservice": "^0.5.0-alpha.13", "vscode-uri": "^3.0.7" } }, "sha512-UpjoYwCFcIcQL/vbIpTVy00p5WD3nO3lnrTrv0+wvS7mTDJVdQizkhc4iOTKSbIp5r0M1e+HeNWwSR2RlavMbA=="],
 
     "vscode-markdown-languageservice": ["vscode-markdown-languageservice@0.5.0-alpha.13", "", { "dependencies": { "@vscode/l10n": "^0.0.18", "node-html-parser": "^6.1.5", "picomatch": "^2.3.1", "vscode-languageserver-protocol": "^3.17.1", "vscode-languageserver-textdocument": "^1.0.11", "vscode-uri": "^3.0.7" } }, "sha512-uxEdsSXdh5Bi/q1kymcqv0JziAN4gi02YPOXhqlEahsgiVGd/5cWGSJIL6hIaRtql3wBgRDNqI7CrOsODh0Yqg=="],
 
     "vscode-uri": ["vscode-uri@3.1.0", "", {}, "sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ=="],
 
     "vscode-languageserver/vscode-languageserver-protocol": ["vscode-languageserver-protocol@3.17.5", "", { "dependencies": { "vscode-jsonrpc": "8.2.0", "vscode-languageserver-types": "3.17.5" } }, "sha512-mb1bvRJN8SVznADSGWM9u/b07H7Ecg0I3OgXDuLdn307rl/J3A9YD6/eYOssqhecL27hK1IPZAsaqh00i/Jljg=="],
-
-    "vscode-markdown-languageserver/vscode-languageserver-types": ["vscode-languageserver-types@3.17.5", "", {}, "sha512-Ld1VelNuX9pdF39h2Hgaeb5hEZM2Z3jUrrMgWQAu82jMtZp7p3vJT3BzToKtZI7NgQssZje5o0zryOrhQvzQAg=="],
 
     "vscode-markdown-languageservice/@vscode/l10n": ["@vscode/l10n@0.0.18", "", {}, "sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ=="],
 
