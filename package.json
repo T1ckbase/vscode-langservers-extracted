@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "oxfmt": "^0.50.0",
+    "oxfmt": "^0.53.0",
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageserver-protocol": "^3.17.5"
   },
