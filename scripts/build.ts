@@ -3,8 +3,8 @@ import { join } from 'node:path';
 
 import { format } from 'oxfmt';
 
-import { downloadVSCodeESLintLanguageServer, getLatestVSCodeESLintVersion } from './vscode-eslint.ts';
-import { extractVSCodeLanguageServers, getLatestVSCodeVersion, patchVSCodeHtmlLanguageServer } from './vscode.ts';
+import { downloadVSCodeESLintLanguageServer, getLatestVSCodeESLintVersion } from './utils/vscode-eslint.ts';
+import { extractVSCodeLanguageServers, getLatestVSCodeVersion, patchVSCodeHtmlLanguageServer } from './utils/vscode.ts';
 
 interface PackageJson {
   upstream: {
@@ -13,8 +13,8 @@ interface PackageJson {
   };
 }
 
-const packageJsonPath = join(import.meta.dir, '..', 'package.json');
-const distPath = join(import.meta.dir, '..', 'dist');
+const packageJsonPath = join(import.meta.dir, '../package.json');
+const distPath = join(import.meta.dir, '../dist');
 const packageJson = (await Bun.file(packageJsonPath).json()) as PackageJson;
 
 if (Bun.argv.includes('--update')) {

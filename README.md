@@ -9,7 +9,7 @@ The HTML, CSS, and JSON language servers are extracted from [VS Code](https://gi
 
 ## Patches
 
-- HTML language server ([`src/vscode.ts`](src/vscode.ts)):
+- HTML language server ([`scripts/utils/vscode.ts`](scripts/utils/vscode.ts)):
   - Fixed hardcoded TypeScript lib path.
   - Updated lib target to `ESNext`.
 

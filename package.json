@@ -44,9 +44,9 @@
   },
   "scripts": {
     "format": "oxfmt",
-    "build": "bun src/main.ts",
-    "update": "bun src/main.ts --update",
-    "test": "bun test src/lsp.test.ts"
+    "build": "bun scripts/build.ts",
+    "update": "bun scripts/build.ts --update",
+    "test": "bun test tests/lsp.test.ts"
   },
   "dependencies": {
     "typescript": "^6.0.3",
