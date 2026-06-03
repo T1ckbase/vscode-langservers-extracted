@@ -4,6 +4,10 @@ updates:
     directory: '/'
     schedule:
       interval: 'monthly'
+    groups:
+      all-dependencies:
+        patterns:
+          - '*'
 
   - package-ecosystem: 'bun'
     directory: '/'
@@ -12,3 +16,7 @@ updates:
     # Keep in sync with the TypeScript version in VS Code extensions
     ignore:
       - dependency-name: 'typescript'
+    groups:
+      all-dependencies:
+        patterns:
+          - '*'
