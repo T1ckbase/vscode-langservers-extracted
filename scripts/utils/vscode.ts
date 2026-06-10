@@ -72,7 +72,7 @@ export async function patchVSCodeHtmlLanguageServer(serverPath: string) {
 
   // Insert fileURLToPath import after the path import line
   {
-    const insertAfter = 'import{join as tm,basename as hA,dirname as Qp}from"path";';
+    const insertAfter = 'import{join as tm,basename as uA,dirname as Qp}from"path";';
     const insertion = 'import { fileURLToPath as __injected_fileURLToPath } from "node:url";';
     const count = text.split(insertAfter).length - 1;
     if (count !== 1) throw new Error(`Expected exactly 1 occurrence of insert-anchor, found ${count}`);
@@ -96,6 +96,14 @@ export async function patchVSCodeHtmlLanguageServer(serverPath: string) {
     if (count !== 1) throw new Error(`Expected exactly 1 occurrence of TypeScript lib configuration, found ${count}`);
     text = text.replace(from, to);
   }
+
+  // {
+  //   const from = 'a=`${Zl}://${e}/libs/`;';
+  //   const to = 'a=new URL(".", import.meta.resolve("typescript/lib/lib.d.ts")).href;';
+  //   const count = text.split(from).length - 1;
+  //   if (count !== 1) throw new Error(`Expected exactly 1 occurrence of libs base URI, found ${count}`);
+  //   text = text.replace(from, to);
+  // }
 
   await Bun.write(serverPath, text);
 }

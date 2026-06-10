@@ -59,7 +59,7 @@
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "upstream": {
-    "vscode": "1.120.0",
+    "vscode": "1.124.0",
     "vscode-eslint": "3.0.24"
   }
 }
