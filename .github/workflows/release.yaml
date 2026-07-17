@@ -60,7 +60,7 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: npm publish --provenance
 
-      - name: Create Draft Release
+      - name: Create Release
         if: ${{ github.event_name == 'push' }}
         run: gh release create "$TAG_NAME" --generate-notes --verify-tag
         env:
