@@ -4,6 +4,7 @@
   "version": "2.0.1",
   "description": "Language servers extracted from Microsoft repositories for CSS, HTML, JSON, Markdown, and ESLint.",
   "keywords": [
+    "autocomplete",
     "css",
     "emacs",
     "eslint",
@@ -16,7 +17,8 @@
     "markdown",
     "neovim",
     "vim",
-    "vscode"
+    "vscode",
+    "zed"
   ],
   "homepage": "https://github.com/T1ckbase/vscode-langservers-extracted#readme",
   "bugs": {
@@ -50,7 +52,7 @@
   },
   "dependencies": {
     "typescript": "^6.0.3",
-    "vscode-markdown-languageserver": "^0.5.0-alpha.16"
+    "vscode-markdown-languageserver": "^0.5.0"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -59,7 +61,7 @@
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "upstream": {
-    "vscode": "1.124.0",
-    "vscode-eslint": "3.0.24"
+    "vscode": "1.129.0",
+    "vscode-eslint": "3.0.34"
   }
 }

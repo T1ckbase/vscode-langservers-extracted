@@ -97,13 +97,14 @@ export async function patchVSCodeHtmlLanguageServer(serverPath: string) {
     text = text.replace(from, to);
   }
 
-  // {
-  //   const from = 'a=`${Zl}://${e}/libs/`;';
-  //   const to = 'a=new URL(".", import.meta.resolve("typescript/lib/lib.d.ts")).href;';
-  //   const count = text.split(from).length - 1;
-  //   if (count !== 1) throw new Error(`Expected exactly 1 occurrence of libs base URI, found ${count}`);
-  //   text = text.replace(from, to);
-  // }
+  // Replace VSCode's virtual libs URI with file URI
+  {
+    const from = 'a=`${Zl}://${e}/libs/`;';
+    const to = 'a=new URL(".", import.meta.resolve("typescript/lib/lib.d.ts")).href;';
+    const count = text.split(from).length - 1;
+    if (count !== 1) throw new Error(`Expected exactly 1 occurrence of libs base URI, found ${count}`);
+    text = text.replace(from, to);
+  }
 
   await Bun.write(serverPath, text);
 }

@@ -12,6 +12,7 @@ The HTML, CSS, and JSON language servers are extracted from [VS Code](https://gi
 - HTML language server ([`scripts/utils/vscode.ts`](scripts/utils/vscode.ts)):
   - Fixed hardcoded TypeScript lib path.
   - Updated lib target to `ESNext`.
+  - Replaced VS Code's virtual TypeScript libs URI with file URI.
 
 ## Usage
 
