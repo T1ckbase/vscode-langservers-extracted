@@ -72,7 +72,7 @@ export async function patchVSCodeHtmlLanguageServer(serverPath: string) {
 
   // Insert fileURLToPath import after the path import line
   {
-    const insertAfter = 'import{join as tm,basename as uA,dirname as Qp}from"path";';
+    const insertAfter = 'import{join as nm,basename as pA,dirname as em}from"path";';
     const insertion = 'import { fileURLToPath as __injected_fileURLToPath } from "node:url";';
     const count = text.split(insertAfter).length - 1;
     if (count !== 1) throw new Error(`Expected exactly 1 occurrence of insert-anchor, found ${count}`);
@@ -81,8 +81,8 @@ export async function patchVSCodeHtmlLanguageServer(serverPath: string) {
 
   // Replace hardcoded TypeScript lib path with runtime resolution via import.meta.resolve
   {
-    const from = 'tm(c2,"../../node_modules/typescript/lib")';
-    const to = 'Qp(__injected_fileURLToPath(import.meta.resolve("typescript/lib/lib.d.ts")))';
+    const from = 'nm(d2,"../../node_modules/typescript/lib")';
+    const to = 'em(__injected_fileURLToPath(import.meta.resolve("typescript/lib/lib.d.ts")))';
     const count = text.split(from).length - 1;
     if (count !== 1) throw new Error(`Expected exactly 1 occurrence of TypeScript path, found ${count}`);
     text = text.replace(from, to);
@@ -99,7 +99,7 @@ export async function patchVSCodeHtmlLanguageServer(serverPath: string) {
 
   // Replace VSCode's virtual libs URI with file URI
   {
-    const from = 'a=`${Zl}://${e}/libs/`;';
+    const from = 'a=`${Ql}://${e}/libs/`;';
     const to = 'a=new URL(".", import.meta.resolve("typescript/lib/lib.d.ts")).href;';
     const count = text.split(from).length - 1;
     if (count !== 1) throw new Error(`Expected exactly 1 occurrence of libs base URI, found ${count}`);
