@@ -13,7 +13,7 @@ updates:
     directory: '/'
     schedule:
       interval: 'monthly'
-    # Keep in sync with the TypeScript version in VS Code extensions
+    # Kept in sync manually with the TypeScript version used by VS Code extensions
     ignore:
       - dependency-name: 'typescript'
     groups:

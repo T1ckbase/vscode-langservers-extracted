@@ -2,7 +2,7 @@
   "$schema": "https://www.schemastore.org/package.json",
   "name": "@t1ckbase/vscode-langservers-extracted",
   "version": "2.0.3",
-  "description": "Language servers extracted from Microsoft repositories for CSS, HTML, JSON, Markdown, and ESLint.",
+  "description": "Language servers extracted from Microsoft repositories for CSS, HTML, JSON, Markdown, and ESLint",
   "keywords": [
     "autocomplete",
     "css",
@@ -46,9 +46,9 @@
   },
   "scripts": {
     "format": "oxfmt",
-    "build": "bun scripts/build.ts",
-    "update": "bun scripts/build.ts --update",
-    "test": "bun test tests/lsp.test.ts"
+    "build": "bun build.ts",
+    "update": "bun build.ts --update",
+    "test": "bun test ./lsp.test.ts"
   },
   "dependencies": {
     "typescript": "^6.0.3",
@@ -56,12 +56,11 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "eslint": "^10.10.0",
     "oxfmt": "^0.65.0",
-    "vscode-jsonrpc": "^9.0.0",
     "vscode-languageserver-protocol": "^3.17.5"
   },
-  "upstream": {
-    "vscode": "1.132.0",
-    "vscode-eslint": "3.0.34"
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -28,5 +28,5 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["scripts/**/*", "tests/**/*"]
+  "include": ["build.ts", "lsp.test.ts"]
 }
