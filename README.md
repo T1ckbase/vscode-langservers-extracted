@@ -7,6 +7,8 @@ A drop-in replacement for [@hrsh7th's `vscode-langservers-extracted`](https://gi
 
 The HTML, CSS, and JSON language servers are extracted from [VS Code](https://github.com/microsoft/vscode), while the ESLint language server is extracted from the [VS Code ESLint extension](https://github.com/microsoft/vscode-eslint). Markdown language server uses the official [`vscode-markdown-languageserver`](https://www.npmjs.com/package/vscode-markdown-languageserver) package.
 
+`vscode-markdown-language-server` relies on the client to parse Markdown (`markdown/parse`), which most LSP clients do not implement. Using a dedicated alternative like [Marksman](https://github.com/artempyanykh/marksman) is recommended.
+
 Note that [`@zed-industries/vscode-langservers-extracted`](https://github.com/zed-industries/vscode-langservers-extracted) is tailored specifically for Zed and currently only includes the HTML language server.
 
 ## Patches
@@ -14,7 +16,11 @@ Note that [`@zed-industries/vscode-langservers-extracted`](https://github.com/ze
 - HTML language server:
   - Fixed embedded JavaScript IntelliSense by replacing hardcoded TypeScript `lib` path with runtime resolution.
   - Fixed Go to Definition by replacing VS Code's virtual TypeScript libs URI with `file` URI.
+  - Fixed crash on missing `js/ts.implicitProjectConfig` in generic clients.
+  - Fixed crash on `null` CSS lint settings from `workspace/configuration`. (microsoft/vscode-html-languageservice#227, neovim/nvim-lspconfig#3393, zed-industries/zed#44874)
   - Updated `lib` target to `ESNext`.
+- CSS language server:
+  - Fixed crash on `null` CSS lint settings from `workspace/configuration`. (microsoft/vscode-html-languageservice#227, neovim/nvim-lspconfig#3393, zed-industries/zed#44874)
 
 ## Usage
 

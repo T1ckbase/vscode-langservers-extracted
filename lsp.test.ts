@@ -104,8 +104,59 @@ class LspClient implements AsyncDisposable {
   }
 }
 
+test('vscode-css-language-server', async () => {
+  await using client = await LspClient.start(packageJson.bin['vscode-css-language-server'], {
+    capabilities: {
+      workspace: { configuration: true },
+      textDocument: { diagnostic: { dynamicRegistration: true } },
+    },
+  });
+
+  client.conn.onRequest(ConfigurationRequest.type, (params) => params.items.map(() => null));
+
+  const uri = 'file:///test.css';
+  await client.conn.sendNotification(DidOpenTextDocumentNotification.type, {
+    textDocument: {
+      uri,
+      languageId: 'css',
+      version: 1,
+      text: 'button { text-box: normal; invalid-css-property: 0; }\n',
+    },
+  });
+
+  const hover = await client.conn.sendRequest(HoverRequest.type, {
+    textDocument: { uri },
+    position: { line: 0, character: 16 },
+  });
+
+  expect(JSON.stringify(hover)).toContain('MDN Reference');
+
+  const result = await client.conn.sendRequest(DocumentDiagnosticRequest.type, {
+    textDocument: { uri },
+  });
+
+  expect(result.kind).toBe('full');
+  if (result.kind === 'full') {
+    expect(result.items.length).toBeGreaterThan(0);
+    expect(result.items[0]!.message).toContain('Unknown property');
+  }
+});
+
 test('vscode-html-language-server', async () => {
-  await using client = await LspClient.start(packageJson.bin['vscode-html-language-server']);
+  await using client = await LspClient.start(packageJson.bin['vscode-html-language-server'], {
+    capabilities: {
+      workspace: { configuration: true },
+      textDocument: { diagnostic: { dynamicRegistration: true } },
+    },
+  });
+
+  client.conn.onRequest(ConfigurationRequest.type, (params) => params.items.map(() => null));
+
+  await client.conn.sendNotification(DidChangeConfigurationNotification.type, {
+    settings: {
+      'js/ts': {},
+    },
+  });
 
   const uri = 'file:///test.html';
   await client.conn.sendNotification(DidOpenTextDocumentNotification.type, {
@@ -113,7 +164,7 @@ test('vscode-html-language-server', async () => {
       uri,
       languageId: 'html',
       version: 1,
-      text: '<script>Uint8Array.fromBase64("SGVsbG8=")</script>\n',
+      text: '<script>Uint8Array.fromBase64</script>\n<style>p { invalid-css-property: 0; }</style>\n',
     },
   });
 
@@ -138,27 +189,16 @@ test('vscode-html-language-server', async () => {
       expect(loc.uri).toContain('typescript/lib/lib.esnext');
     }
   }
-});
 
-test('vscode-css-language-server', async () => {
-  await using client = await LspClient.start(packageJson.bin['vscode-css-language-server']);
-
-  const uri = 'file:///test.css';
-  await client.conn.sendNotification(DidOpenTextDocumentNotification.type, {
-    textDocument: {
-      uri,
-      languageId: 'css',
-      version: 1,
-      text: 'button { text-box: normal; }\n',
-    },
-  });
-
-  const hover = await client.conn.sendRequest(HoverRequest.type, {
+  const result = await client.conn.sendRequest(DocumentDiagnosticRequest.type, {
     textDocument: { uri },
-    position: { line: 0, character: 16 },
   });
 
-  expect(JSON.stringify(hover)).toContain('MDN Reference');
+  expect(result.kind).toBe('full');
+  if (result.kind === 'full') {
+    expect(result.items.length).toBeGreaterThan(0);
+    expect(result.items[0]!.message).toContain('Unknown property');
+  }
 });
 
 test('vscode-json-language-server', async () => {

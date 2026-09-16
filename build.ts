@@ -93,6 +93,9 @@ console.log('Patching VS Code HTML language server...');
 
   code = `import { fileURLToPath as ___fileURLToPath } from 'node:url';\nimport { dirname as ___dirname } from 'node:path';\n${code}`;
 
+  // Null from workspace/configuration bypasses the ={} default and crashes getSetting on validProperties.
+  code = patch(code, /constructor\((\w+)=\{\}\)\{this\.conf=\1\}/, 'constructor($1={}){this.conf=$1??{}}');
+
   // Replace hardcoded TypeScript lib path with runtime resolution via import.meta.resolve
   code = patch(
     code,
@@ -110,7 +113,25 @@ console.log('Patching VS Code HTML language server...');
     'new URL(".", import.meta.resolve("typescript/lib/lib.d.ts")).href',
   );
 
+  // Fix crash on missing implicitProjectConfig in js/ts settings
+  code = patch(
+    code,
+    /\?\.\["js\/ts"\]\?\.implicitProjectConfig\.strictNullChecks/,
+    '?.["js/ts"]?.implicitProjectConfig?.strictNullChecks',
+  );
+
   await Bun.write(htmlPath, code);
+}
+
+console.log('Patching VS Code CSS language server...');
+{
+  const cssPath = join('dist', 'cssServerMain.js');
+  let code = await Bun.file(cssPath).text();
+
+  // Null from workspace/configuration bypasses the ={} default and crashes getSetting on validProperties.
+  code = patch(code, /constructor\((\w+)=\{\}\)\{this\.conf=\1\}/, 'constructor($1={}){this.conf=$1??{}}');
+
+  await Bun.write(cssPath, code);
 }
 
 console.log('Checking imports in extracted files...');
